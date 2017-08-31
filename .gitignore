@@ -29,6 +29,7 @@ Facebook/
 Flagging/
 FlickrReloaded/
 GettingStarted/
+GoogleSignIn/
 GooglePlus/
 GooglePrettify/
 Gravatar/
@@ -45,6 +46,7 @@ Multilingual/
 NotifyCommentOnCommented/
 OneallSocialLogin/
 OpenID/
+PageSpeed/
 Pockets/
 PostCount/
 PostScheduler/
@@ -68,3 +70,5 @@ VanillaInThisDiscussion/
 VanillaStats/
 vanillicon/
 Voting/
+Warning/
+WhosOnline/
