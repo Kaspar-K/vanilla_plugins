@@ -1,0 +1,20 @@
+<?php if (!defined('APPLICATION')) exit(); ?>
+<?php
+?><h1><?php echo T($this->Data['Title']); ?></h1>
+<div class="Info">
+    <?php echo T($this->Data['Description']); ?>
+</div>
+<div class="DictionaryList">
+<?php
+$dictionaries=gdn::sql()->select("DictionaryID,NumWords,Dictionary")->from("Dictionaries")->get();
+while(($row=$dictionaries->nextRow()))
+{
+    echo "<div class='DictionaryItem'><p class='DictionaryDescription'>$row->Dictionary: $row->NumWords word(s)</p><div class='DictionaryButtons'><p onclick='window.open(gdn.url(\"plugin/dictionary/download/\"+$row->DictionaryID))'>Download dictionary</p><p onclick='removeDictionary(\"$row->DictionaryID\",\"$row->Dictionary\")'>Remove Item</p></div></div>";
+}
+?>
+</div>
+<p>Upload new dictionary:</p>
+<input type="file" id="file">
+<p>New dictionary name:</p>
+<input type="text" id="name">
+<input type="button" onclick="addNewDictionary()" value="Upload the dictionary!">

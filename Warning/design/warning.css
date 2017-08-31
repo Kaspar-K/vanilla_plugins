@@ -1,0 +1,76 @@
+.WarningSprite{
+    background-image: url("warning.png");
+    background-repeat: no-repeat;
+    background-position:  center;
+    width: 36px;
+    height: 36px;
+}
+
+.Warnings .Warn{
+    padding: 8px;
+    padding-left: 38px;
+    text-transform: uppercase;
+    font-weight: bold;
+    color: #333;
+    background-image: url("warning.png");
+    background-repeat: no-repeat;
+    background-position:  2px center;
+    margin-bottom: 1px;
+}
+
+.Warnings .NoWarning{
+    text-align: center;
+    background-image: none;
+    text-transform: none;
+}
+
+.Warnings .WarningReason{
+    margin-bottom: 1px;
+    padding:2px 5px;
+}
+
+.Warnings .Historical,
+.Warnings .None{
+    display:none;
+}
+
+.Warnings .Historical.Show{
+    display:block;
+}
+
+.Discussion .WarnLevelMild,
+.Warnings .Mild{
+    background-color: #FFE957;
+}
+
+.Discussion .WarnLevelMedium,
+.Warnings .Medium{
+    background-color: #FF7C3B;
+}
+
+.Discussion .WarnLevelSevere,
+.Warnings .Severe{
+    background-color: #FF0008;
+}
+
+.WarnButton,
+.Warnings .WarningDate{
+    float:right;
+}
+
+.Discussion .WarnLevel {
+    height:24px;
+    background-image: url("warning-sm.png");
+    background-repeat: no-repeat;
+    background-position:  2px center;
+    color: #333;
+    text-transform: uppercase;
+    font-weight: bold;
+    padding-left:20px;
+    padding-right: 3px;
+    padding-top: 1px;
+    padding-bottom:1px;
+    margin: 0 2px;
+}
+
+

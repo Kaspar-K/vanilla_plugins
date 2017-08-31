@@ -1,0 +1,82 @@
+.CNGame
+{
+    display: inline-block;
+    width:100%;
+    
+}
+.Card
+{
+    display: inline-block;
+    width:13%;
+    text-align: center;
+}
+.CNGame.Turn1{
+    
+    border: solid red;
+}
+.CNGame.Turn2
+{
+    border: solid blue;
+}
+.Card
+{
+    border:solid black 1px;
+    margin:5px;
+}
+.CNGame.Team1
+{
+    background-color: pink;
+}
+.CNGame.Team2
+{
+    background-color: lightblue;
+}
+.Card.Team0
+{
+    background-color: burlywood;
+}
+.Card.Team1
+{
+    background-color: red;
+    color:white;
+}
+.Card.Team2
+{
+    background-color: blue;
+    color:white;
+    
+}
+.Spoiled .CNGuess{
+    border:dotted;
+    margin:5px;
+}
+.CNGuess.Team1
+{
+    border-color:red;
+}
+.CNGuess.Team2
+{
+    border-color:blue;
+}
+.Team-1
+{
+    background-color: black;
+    color:white;
+}
+.CNHint
+{
+    text-align: center;
+    font-weight: bold;
+}
+.CNHint.Team1
+{
+    border: solid red;
+}
+.Spoiled .CNHint.Team2
+{
+    border: solid blue;
+}
+.Guessed.Card
+{
+    color: transparent;
+}
