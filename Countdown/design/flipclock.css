@@ -87,6 +87,10 @@
   line-height: 87px;
   text-decoration: none !important;
 }
+div.flip-clock-wrapper ul.flip li
+{
+  list-style:none !important;
+}
 
 .flip-clock-wrapper ul li:first-child {
   z-index: 2; }

@@ -6,11 +6,10 @@ if (!defined('APPLICATION'))
 // Define the plugin:
 $PluginInfo['Countdown'] = array(
     'Name' => 'Countdown',
-    'Description' => 'Add a countdown to a specific time and date to a comment. Pick from different display types.',
+    'Description' => 'Add a countdown to a specific time and date to a comment. Based on a plugin written by Matt Sephton.',
     'Version' => '1.3.0',
-    'Author' => "Matt Sephton",
-    'AuthorEmail' => 'matt@gingerbeardman.com',
-    'AuthorUrl' => 'http://www.vanillaforums.org/profile/matt',
+    'Author' => "Caylus",
+    'AuthorUrl' => 'https://open.vanillaforums.com/profile/Caylus',
     'License' => 'GPL v2',
     'SettingsUrl' => '/settings/countdown',
     'SettingsPermission' => 'Garden.Settings.Manage',
@@ -41,65 +40,27 @@ class Countdown extends Gdn_Plugin {
 
     // replace in comment
     public function Base_AfterCommentFormat_Handler($Sender) {
-            $Object = $Sender->EventArguments['Object'];
-            $Object->FormatBody = $this->DoReplacement($Object->FormatBody);
-            $Sender->EventArguments['Object'] = $Object;
+        $Object = $Sender->EventArguments['Object'];
+        $Object->FormatBody = $this->DoReplacement($Object->FormatBody);
+        $Sender->EventArguments['Object'] = $Object;
     }
 
     public function getTimeFromString($string) {
 
+        $date = new DateTime($string, new DateTimeZone(c('Plugins.Countdown.Timezone', 'UTC')));
         // get seconds
-        $CountdownTime = strtotime($string);
-        $Now = time();
-
-        // calc diff or set to zero if in the past
-        if ($CountdownTime < $Now) {
-            return 0;
-        } else {
-            return $CountdownTime - $Now;
-        }
+        $CountdownTime = $date->format('U');
+        return $CountdownTime;
     }
 
     // replacement logic
     public function DoReplacement($Text) {
         $number_replacements_allowed = c('Plugins.Countdown.NumReplacementsPerPost', 10);
 
-        // timezone
-        $CountdownTimezone = (C('Plugins.Countdown.Timezone')) ? C('Plugins.Countdown.Timezone') : 'UTC';
-        date_default_timezone_set($CountdownTimezone);
-
         $CountdownTag = C('Plugins.Countdown.Tag', '[COUNTDOWN]');
 
-                $offset = strlen("$CountdownTag(");
-        $begin = strpos($Text, "$CountdownTag(");
-        while (($number_replacements_allowed === true || $number_replacements_allowed-- > 0) && $begin !== false) {
-            $end = strpos($Text, ")", $begin + $offset);
-            if ($end === false) {
-                break;
-            }
-            $string = substr($Text, $begin + $offset, $end - $begin - $offset);
-            $time = $this->getTimeFromString($string);
-            $CountdownHTML = "<div data-countdown='$time'></div>";
-            $Text = substr_replace($Text, $CountdownHTML, $begin, $end - $begin + 1);
-            $charCountDifference = strlen($CountdownHTML) - $end + $begin;
-            $begin = strpos($Text, "$CountdownTag(", $end + $charCountDifference);
-        }
-        // time
-        $CountdownTime = (C('Plugins.Countdown.Time')) ? C('Plugins.Countdown.Time') : '00:00:00 19 August 2012';
-        $time = $this->getTimeFromString($CountdownTime);
-        $CountdownHTML = "<div data-countdown='$time'></div>";
-        if ($number_replacements_allowed === true) {
-            return str_replace($CountdownTag, $CountdownHTML, $Text);
-        }
-        $length_to_replace = strlen($CountdownTag);
-        for ($i = 0; $i < $number_replacements_allowed; $i++) {
-            $begin = strpos($Text, $CountdownTag);
-            if ($begin === false) {
-                break;
-            } else {
-                $Text = substr_replace($Text, $CountdownHTML, $begin, $length_to_replace);
-            }
-        }
+        $this->replaceCustomCountdowns($Text, $CountdownTag, $number_replacements_allowed);
+        $this->replaceGeneralCountdowns($Text, $CountdownTag, $number_replacements_allowed);
 
         return $Text;
     }
@@ -116,21 +77,47 @@ class Countdown extends Gdn_Plugin {
         $Sender->AddCssFile('flipclock.css', 'plugins/Countdown');
     }
 
-    public function Setup() {
-        return TRUE;
+    public function replaceCustomCountdowns(&$Text, $CountdownTag, &$number_replacements_allowed) {
+
+        $offset = strlen("$CountdownTag(");
+        $begin = strpos($Text, "$CountdownTag(");
+        while (($number_replacements_allowed === true || $number_replacements_allowed-- > 0) && $begin !== false) {
+            $end = strpos($Text, ")", $begin + $offset);
+            if ($end === false) {
+                break;
+            }
+            $string = substr($Text, $begin + $offset, $end - $begin - $offset);
+            $time = $this->getTimeFromString($string);
+            $CountdownHTML = getCountdownHTML($time);
+            $Text = substr_replace($Text, $CountdownHTML, $begin, $end - $begin + 1);
+            $charCountDifference = strlen($CountdownHTML) - $end + $begin;
+            $begin = strpos($Text, "$CountdownTag(", $end + $charCountDifference);
+        }
     }
 
-    function formatSeconds($secs) {
-        $result['s'] = $this->numberPad($secs % 60);
-        $result['m'] = $this->numberPad(floor($secs / 60) % 60);
-        $result['h'] = $this->numberPad(floor($secs / 60 / 60) % 24);
-        $result['d'] = $this->numberPad(floor($secs / 60 / 60 / 24));
+    public function getCountdownHTML($time) {
 
-        return $result;
+        $CountdownHTML = "<div data-countdown='$time'></div>";
+        return $CountdownHTML;
     }
 
-    function numberPad($number) {
-        return sprintf("%02d", $number);
+    public function replaceGeneralCountdowns(&$Text, $CountdownTag, &$number_replacements_allowed) {
+        // time
+        $CountdownTime = (C('Plugins.Countdown.Time')) ? C('Plugins.Countdown.Time') : '00:00:00 19 August 2012';
+        $time = $this->getTimeFromString($CountdownTime);
+        $CountdownHTML = getCountdownHTML($time);
+        if ($number_replacements_allowed === true) {
+            return str_replace($CountdownTag, $CountdownHTML, $Text);
+        }
+        $length_to_replace = strlen($CountdownTag);
+        for ($i = 0; $i < $number_replacements_allowed; $i++) {
+            $begin = strpos($Text, $CountdownTag);
+            if ($begin === false) {
+                break;
+            } else {
+                $Text = substr_replace($Text, $CountdownHTML, $begin, $length_to_replace);
+            }
+        }
     }
 
 }
