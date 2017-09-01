@@ -54,47 +54,23 @@ class Countdown extends Gdn_Plugin {
 
         // calc diff or set to zero if in the past
         if ($CountdownTime < $Now) {
-            $Diff = 0;
+            return 0;
         } else {
-            $Diff = $CountdownTime - $Now;
+            return $CountdownTime - $Now;
         }
-
-        // get components
-        $elements = $this->formatSeconds($Diff);
-        $days = $elements['d'];
-        $hours = $elements['h'];
-        $minutes = $elements['m'];
-        $seconds = $elements['s'];
-        return "$days:$hours:$minutes:$seconds";
     }
 
     // replacement logic
     public function DoReplacement($Text) {
         $number_replacements_allowed = c('Plugins.Countdown.NumReplacementsPerPost', 10);
-        // digits
-        $CountdownDigits = (C('Plugins.Countdown.Digits')) ? C('Plugins.Countdown.Digits') : 'digits';
 
         // timezone
         $CountdownTimezone = (C('Plugins.Countdown.Timezone')) ? C('Plugins.Countdown.Timezone') : 'UTC';
         date_default_timezone_set($CountdownTimezone);
 
-        // time
-        $CountdownTime = (C('Plugins.Countdown.Time')) ? C('Plugins.Countdown.Time') : '00:00:00 19 August 2012';
-        $time = $this->getTimeFromString($CountdownTime);
         $CountdownTag = C('Plugins.Countdown.Tag', '[COUNTDOWN]');
-        // get img
-        $ImgSrc = Asset('/plugins/Countdown/design/' . $CountdownDigits . '.png');
 
-        $CountdownJS = <<<JS
-<div style="display:table;overflow: auto;"><div data-countdown="$time" data-img="$ImgSrc"></div>
-<div class="countdown-desc">
-	<div>Days</div>
-	<div>Hours</div>
-	<div>Minutes</div>
-	<div>Seconds</div>
-</div></div>
-JS;
-        $offset = strlen("$CountdownTag(");
+                $offset = strlen("$CountdownTag(");
         $begin = strpos($Text, "$CountdownTag(");
         while (($number_replacements_allowed === true || $number_replacements_allowed-- > 0) && $begin !== false) {
             $end = strpos($Text, ")", $begin + $offset);
@@ -103,21 +79,17 @@ JS;
             }
             $string = substr($Text, $begin + $offset, $end - $begin - $offset);
             $time = $this->getTimeFromString($string);
-            $newpiece = <<<JS
-<div style="display:table;overflow: auto;"><div data-countdown="$time" data-img="$ImgSrc"></div>
-<div class="countdown-desc">
-	<div>Days</div>
-	<div>Hours</div>
-	<div>Minutes</div>
-	<div>Seconds</div>
-</div></div>
-JS;
-            $Text = substr_replace($Text, $newpiece, $begin, $end - $begin + 1);
-            $charCountDifference = strlen($newpiece) - $end + $begin;
+            $CountdownHTML = "<div data-countdown='$time'></div>";
+            $Text = substr_replace($Text, $CountdownHTML, $begin, $end - $begin + 1);
+            $charCountDifference = strlen($CountdownHTML) - $end + $begin;
             $begin = strpos($Text, "$CountdownTag(", $end + $charCountDifference);
         }
+        // time
+        $CountdownTime = (C('Plugins.Countdown.Time')) ? C('Plugins.Countdown.Time') : '00:00:00 19 August 2012';
+        $time = $this->getTimeFromString($CountdownTime);
+        $CountdownHTML = "<div data-countdown='$time'></div>";
         if ($number_replacements_allowed === true) {
-            return str_replace($CountdownTag, $CountdownJS, $Text);
+            return str_replace($CountdownTag, $CountdownHTML, $Text);
         }
         $length_to_replace = strlen($CountdownTag);
         for ($i = 0; $i < $number_replacements_allowed; $i++) {
@@ -125,7 +97,7 @@ JS;
             if ($begin === false) {
                 break;
             } else {
-                $Text = substr_replace($Text, $CountdownJS, $begin, $length_to_replace);
+                $Text = substr_replace($Text, $CountdownHTML, $begin, $length_to_replace);
             }
         }
 
@@ -139,8 +111,9 @@ JS;
 
     // setup
     private function _CountdownSetup($Sender) {
-        $Sender->AddJsFile('jquery.countdown.min.js', 'plugins/Countdown');
-        $Sender->AddCssFile('countdown.css', 'plugins/Countdown');
+        $Sender->AddJsFile('flipclock.min.js', 'plugins/Countdown');
+        $Sender->AddJsFile('countdown.js', 'plugins/Countdown');
+        $Sender->AddCssFile('flipclock.css', 'plugins/Countdown');
     }
 
     public function Setup() {
