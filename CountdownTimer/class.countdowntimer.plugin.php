@@ -4,8 +4,8 @@ if (!defined('APPLICATION'))
     exit();
 
 // Define the plugin:
-$PluginInfo['Countdown'] = array(
-    'Name' => 'Countdown',
+$PluginInfo['CountdownTimer'] = array(
+    'Name' => 'CountdownTimer',
     'Description' => 'Add a countdown to a specific time and date to a comment. Based on a plugin written by Matt Sephton.',
     'Version' => '1.3.0',
     'Author' => "Caylus",
@@ -13,10 +13,10 @@ $PluginInfo['Countdown'] = array(
     'License' => 'GPL v2',
     'SettingsUrl' => '/settings/countdown',
     'SettingsPermission' => 'Garden.Settings.Manage',
-    'RequiredApplications' => array('Vanilla' => '>=2')
+    'RequiredApplications' => array('Vanilla' => '>=2.2')
 );
 
-class Countdown extends Gdn_Plugin {
+class CountdownTimer extends Gdn_Plugin {
 
     // settings
     public function SettingsController_Countdown_Create($Sender, $Args = array()) {
@@ -28,9 +28,9 @@ class Countdown extends Gdn_Plugin {
 
         $Cf = new ConfigurationModule($Sender);
         $Cf->Initialize(array(
-            'Plugins.Countdown.Tag' => array('Description' => 'The following text will be replaced with the countdown widget', 'Control' => 'TextBox', 'Default' => '[COUNTDOWN]'),
-            'Plugins.Countdown.Time' => array('Description' => 'Accepts most English textual date and time descriptions, see <a href="http://php.net/manual/en/function.strtotime.php">strtotime</a>', 'Control' => 'TextBox', 'Default' => '00:00:00 19 August 2012'),
-            'Plugins.Countdown.Timezone' => array('Control' => 'DropDown', 'Items' => $timezones, 'Default' => 'UTC')
+            'Plugins.CountdownTimer.Tag' => array('Description' => 'The following text will be replaced with the countdown widget', 'Control' => 'TextBox', 'Default' => '[COUNTDOWN]'),
+            'Plugins.CountdownTimer.Time' => array('Description' => 'Accepts most English textual date and time descriptions, see <a href="http://php.net/manual/en/function.strtotime.php">strtotime</a>', 'Control' => 'TextBox', 'Default' => '00:00:00 19 August 2012'),
+            'Plugins.CountdownTimer.Timezone' => array('Control' => 'DropDown', 'Items' => $timezones, 'Default' => 'UTC')
         ));
 
         $Sender->AddSideMenu('dashboard/settings/plugins');
@@ -46,17 +46,23 @@ class Countdown extends Gdn_Plugin {
 
     public function getTimeFromString($string) {
 
-        $date = new DateTime($string, new DateTimeZone(c('Plugins.Countdown.Timezone', 'UTC')));
-        // get seconds
-        $CountdownTime = $date->format('U');
-        return $CountdownTime;
+        try {
+            $date = new DateTime($string, new DateTimeZone(c('Plugins.CountdownTimer.Timezone', 'UTC')));
+            // get seconds
+            $CountdownTime = $date->format('U');
+            return $CountdownTime;
+        } catch (Exception $e) {
+            echo $e->getMessage();
+            exit(1);
+        }
+        return 0;
     }
 
     // replacement logic
     public function DoReplacement($Text) {
-        $number_replacements_allowed = c('Plugins.Countdown.NumReplacementsPerPost', 10);
+        $number_replacements_allowed = c('Plugins.CountdownTimer.NumReplacementsPerPost', 10);
 
-        $CountdownTag = C('Plugins.Countdown.Tag', '[COUNTDOWN]');
+        $CountdownTag = C('Plugins.CountdownTimer.Tag', '[COUNTDOWN]');
 
         $this->replaceCustomCountdowns($Text, $CountdownTag, $number_replacements_allowed);
         $this->replaceGeneralCountdowns($Text, $CountdownTag, $number_replacements_allowed);
@@ -71,9 +77,9 @@ class Countdown extends Gdn_Plugin {
 
     // setup
     private function _CountdownSetup($Sender) {
-        $Sender->AddJsFile('flipclock.min.js', 'plugins/Countdown');
-        $Sender->AddJsFile('countdown.js', 'plugins/Countdown');
-        $Sender->AddCssFile('flipclock.css', 'plugins/Countdown');
+        $Sender->AddJsFile('flipclock.min.js', 'plugins/CountdownTimer');
+        $Sender->AddJsFile('countdown.js', 'plugins/CountdownTimer');
+        $Sender->AddCssFile('flipclock.css', 'plugins/CountdownTimer');
     }
 
     public function replaceCustomCountdowns(&$Text, $CountdownTag, &$number_replacements_allowed) {
@@ -102,7 +108,7 @@ class Countdown extends Gdn_Plugin {
 
     public function replaceGeneralCountdowns(&$Text, $CountdownTag, &$number_replacements_allowed) {
         // time
-        $CountdownTime = (C('Plugins.Countdown.Time')) ? C('Plugins.Countdown.Time') : '00:00:00 19 August 2012';
+        $CountdownTime = (C('Plugins.CountdownTimer.Time')) ? C('Plugins.CountdownTimer.Time') : '00:00:00 19 August 2012';
         $time = $this->getTimeFromString($CountdownTime);
         $CountdownHTML = getCountdownHTML($time);
         if ($number_replacements_allowed === true) {
