@@ -14,16 +14,15 @@ $PluginInfo['MoarNotificationOptions'] = array(
 );
 
 class moarnotificationoptionsPlugin extends Gdn_Plugin {
-    
-    public function notificationscontroller_BeforeInformNotifications_handler()
-    {
-        $this->resetStatus();
+
+    public function notificationscontroller_BeforeRender_handler() {
+        resetStatus();
     }
-    
-    public function resetStatus()
-    {
-        if(!gdn::session()->getAttribute("Facebook.Notifications.Uptodate",false)){
-        gdn::userModel()->saveAttribute(gdn::session()->UserID, "Facebook.Notifications.Uptodate",true);}
+
+    public function resetStatus() {
+        if (!gdn::session()->getAttribute("Facebook.Notifications.Uptodate", false)) {
+            gdn::userModel()->saveAttribute(gdn::session()->UserID, "Facebook.Notifications.Uptodate", true);
+        }
     }
 
     /**
@@ -68,6 +67,7 @@ class moarnotificationoptionsPlugin extends Gdn_Plugin {
     /*
      * Break out IFrame Facebook puts you in
      */
+
     function plugincontroller_redirect_create() {
         $this->resetStatus();
         header("X-Frame-Options: ALLOW-FROM https://facebook.com");
@@ -91,11 +91,7 @@ class moarnotificationoptionsPlugin extends Gdn_Plugin {
      */
     public function activityModel_beforeCheckPreference_handler($sender, $args) {
         // Check if user wants to be notified of such events.
-        if (
-                !$sender->notificationPreference(
-                        $args['Preference'], $args['Data']['NotifyUserID'], 'Facebook'
-                )
-        ) {
+        if (!$sender->notificationPreference(ActivityModel::getActivityType($args['Data']['ActivityType']), $args['Data']['NotifyUserID'], 'Facebook')) {
             return;
         }
 
@@ -106,20 +102,13 @@ class moarnotificationoptionsPlugin extends Gdn_Plugin {
     }
 
     /**
-     * Send custom notification and change activities sent status.
-     *
-     * @param ActivityModel $sender Instance of the sending class.
-     * @param mixed         $args   Event arguments.
-     *
-     * @return void.
+     * If user wants to be informed via Facebook, send a ping to Facebook.
      */
     public function activityModel_beforeSave_handler($sender, $args) {
-        $notifyUserID=$args['Data']['NotifyUserID'];
-        // Only continue if notification has not been already sent or has
-        // been a fatal error.
-        if (!(gdn::userModel()->getAttribute($notifyUserID, "Facebook.Notifications.Uptodate",true)&&
-                $sender->notificationPreference($args['Preference'],$notifyUserID , 'Facebook')
-        )) {
+        $notifyUserID = $args['Activity']['NotifyUserID'];
+        $activityType = ActivityModel::getActivityType($args['Activity']['ActivityTypeID'])['Name'];
+        if (!(gdn::userModel()->getAttribute($notifyUserID, "Facebook.Notifications.Uptodate", true) &&
+                $sender->notificationPreference($activityType, $notifyUserID, 'Facebook'))) {
             return;
         }
 
@@ -142,27 +131,21 @@ class moarnotificationoptionsPlugin extends Gdn_Plugin {
      * @return integer One of the SENT_... constants of ActivityModel.
      */
     private function notify($activity) {
-        $notifyUserID=$activity['NotifyUserID'];
-        $activity['Data'] = unserialize($activity['Data']);
-
-        // Form the Activity headline
-        $activity['Headline'] = formatString(
-                $activity['HeadlineFormat'], $activity
-        );
+        $notifyUserID = $activity['NotifyUserID'];
         try {
-            $app_access= $this->getAppAccessToken();
+            $app_access = $this->getAppAccessToken();
             $notification_url = $this->getNotificationURL($notifyUserID);
             if ($app_access && $notification_url) {
                 $parameters = ["access_token" => $app_access,
                     "href" => "",
-                    "template" => strip_tags ($activity['Headline']).". There might be more notifications on the forum."];
+                    "template" => strip_tags($activity['Story']) . ". There might be more notifications on the forum."];
                 $this->sendToFacebook($notification_url, $parameters);
             }
         } catch (Exception $e) {
             echo $e->getMessage();
             return ActivityModel::SENT_ERROR;
         }
-        gdn::userModel()->saveAttribute($notifyUserID, "Facebook.Notifications.Uptodate",false);
+        gdn::userModel()->saveAttribute($notifyUserID, "Facebook.Notifications.Uptodate", false);
         return ActivityModel::SENT_OK;
     }
 
@@ -181,20 +164,17 @@ class moarnotificationoptionsPlugin extends Gdn_Plugin {
     }
 
     private function getNotificationURL($notifyUserID) {
-        $user_access_token=val('AccessToken',Gdn::userModel()->getAttribute($notifyUserID, "Facebook",false),false);
-        if(!$user_access_token)
-        {
+        $user_access_token = val('AccessToken', Gdn::userModel()->getAttribute($notifyUserID, "Facebook", false), false);
+        if (!$user_access_token) {
             return false;
         }
-        $response=file_get_contents("https://graph.facebook.com/me?fields=id&access_token=$user_access_token");
+        $response = file_get_contents("https://graph.facebook.com/me?fields=id&access_token=$user_access_token");
         $userid = json_decode($response)->id;
         if ($userid) {
             return "https://graph.facebook.com/$userid/notifications";
+        } else {
+            saveToConfig("error", $response);
         }
-        else
-            {
-            saveToConfig("error",$response);
-            }
         return false;
     }
 
@@ -207,7 +187,7 @@ class moarnotificationoptionsPlugin extends Gdn_Plugin {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
 //execute post
-        $result = curl_exec($ch);
+        curl_exec($ch);
 
 //close connection
         curl_close($ch);
