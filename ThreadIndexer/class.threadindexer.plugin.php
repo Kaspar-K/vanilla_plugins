@@ -1,18 +1,20 @@
 <?php
+
 if (!defined('APPLICATION')) {
     exit();
 }
 
 $PluginInfo['ThreadIndexer'] = array(
-    'Name' => 'ThreadIndexer',
+    'Author' => "Caylus",
+    'AuthorUrl' => 'https://open.vanillaforums.com/profile/Caylus',
     'Description' => 'Enables you to create an index of a thread.',
-    'Version' => '1.0',
-    'Author' => "Tom Sassen",
-    'AuthorEmail' => 'tom.sassen@hotmail.com',
+    'HasLocale' => true,
     'MobileFriendly' => TRUE,
+    'Name' => 'ThreadIndexer',
+    'RegisterPermissions' => ['Plugins.ThreadIndexer.CreateIndex' => 'Garden.Moderation.Manage', 'Plugins.ThreadIndexer.AddEntry' => 1],
     'RequiredApplications' => array('Vanilla' => '2.1'),
     'RequiredPlugins' => array('PluginCommandParser' => '1.0'),
-    'RegisterPermissions' => ['Plugins.ThreadIndexer.CreateIndex' => 'Garden.Moderation.Manage', 'Plugins.ThreadIndexer.AddEntry' => 1]
+    'Version' => '1.0'
 );
 
 class ThreadIndexerPlugin extends Gdn_Plugin {
@@ -22,12 +24,13 @@ class ThreadIndexerPlugin extends Gdn_Plugin {
     private $IndexHTML;
 
     public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args) {
-        $commandIndex=$Sender->EventArguments['CommandIndex'];
-        $commands=[
-            "[tiindex]X[/tiindex]"=>t("Only works in the first post of a discussion! Creates the index. You can only have one index per discussion."),
-            "[tientry]X[/tientry]"=>t("Adds a link with title X to this comment in the index.")];
-            $commandIndex->addCommands($commands,$this);
+        $commandIndex = $Sender->EventArguments['CommandIndex'];
+        $commands = [
+            "[tiindex]X[/tiindex]" => t("Only works in the first post of a discussion! Creates the index. You can only have one index per discussion."),
+            "[tientry]X[/tientry]" => t("Adds a link with title X to this comment in the index.")];
+        $commandIndex->addCommands($commands, $this);
     }
+
     public function PluginCommandParserPlugin_BeforeSaveParserSetup_Handler($Sender, $Args) {
         $BBCode = $Sender->EventArguments['Parser'];
         $this->currentPost = $Sender->EventArguments['CurrentPost'];
@@ -185,7 +188,8 @@ class ThreadIndexerPlugin extends Gdn_Plugin {
     }
 
     // Adds CSS to the relevant pages
-    public function getCSSToAdd(){"
+    public function getCSSToAdd() {
+        "
             .TIIndex
             {
 

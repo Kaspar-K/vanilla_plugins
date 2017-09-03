@@ -5,15 +5,15 @@ if (!defined('APPLICATION'))
 
 // Define the plugin:
 $PluginInfo['CountdownTimer'] = array(
-    'Name' => 'CountdownTimer',
-    'Description' => 'Add a countdown to a specific time and date to a comment. Based on a plugin written by Matt Sephton.',
-    'Version' => '1.3.0',
     'Author' => "Caylus",
     'AuthorUrl' => 'https://open.vanillaforums.com/profile/Caylus',
+    'Description' => 'Add a countdown to a specific time and date to a comment. Based on a plugin written by Matt Sephton.',
+    'Version' => '1.3.0',
     'License' => 'GPL v2',
-    'SettingsUrl' => '/settings/countdown',
+    'Name' => 'CountdownTimer',
+    'RequiredApplications' => array('Vanilla' => '>=2.2'),
     'SettingsPermission' => 'Garden.Settings.Manage',
-    'RequiredApplications' => array('Vanilla' => '>=2.2')
+    'SettingsUrl' => '/settings/countdown'
 );
 
 class CountdownTimer extends Gdn_Plugin {

@@ -4,14 +4,15 @@ if (!defined('APPLICATION')) {
 }
 
 $PluginInfo['Dictionary'] = array(
-    'Name' => 'Dictionary',
+    'Author' => "Caylus",
+    'AuthorUrl' => 'https://open.vanillaforums.com/profile/Caylus',
     'Description' => 'A plugin to enable games to look up words.',
-    'Version' => '1.0',
-    'Author' => "Tom Sassen",
-    'AuthorEmail' => 'tom.sassen@hotmail.com',
+    'HasLocale' => true,
     'MobileFriendly' => TRUE,
+    'Name' => 'Dictionary',
     'RequiredApplications' => array('Vanilla' => '2.1'),
-    'SettingsUrl' => '/settings/dictionary'
+    'SettingsUrl' => '/settings/dictionary',
+    'Version' => '1.0'
 );
 
 class DictionaryPlugin extends Gdn_Plugin {
@@ -110,7 +111,7 @@ class DictionaryPlugin extends Gdn_Plugin {
         $safe_name = preg_replace("/[^a-z0-9]/", '', strtolower($unsafe_name));
         $unsafe_newWords = preg_split("/[.\n, ]/", strtolower($unsafe_content));
         $this->addNewWords($unsafe_newWords, $safe_name);
-        Gdn::sql()->replace("DPDictionariesNames", ['Dictionary' => $safe_name, 'NumWords' => gdn::sql()->getCount($this->getDictionaryPath($safe_name)), 'UserID' => Gdn::session()->UserID], ['Dictionary' => $safe_name],true);
+        Gdn::sql()->replace("DPDictionariesNames", ['Dictionary' => $safe_name, 'NumWords' => gdn::sql()->getCount($this->getDictionaryPath($safe_name)), 'UserID' => Gdn::session()->UserID], ['Dictionary' => $safe_name], true);
     }
 
     public function PluginController_Dictionary_Create($Sender, $Args) {
@@ -190,7 +191,7 @@ class DictionaryPlugin extends Gdn_Plugin {
             if ($this->isOkayWord($unsafe_word) && !isset($existing_words[$unsafe_word])) {
                 $existing_words[$unsafe_word] = true;
                 //If there isn't a word yet in the database, add it to the database
-                Gdn::sql()->replace($table_name, ['Word' => $unsafe_word],['Word'=>$unsafe_word],true);
+                Gdn::sql()->replace($table_name, ['Word' => $unsafe_word], ['Word' => $unsafe_word], true);
             }
         }
     }

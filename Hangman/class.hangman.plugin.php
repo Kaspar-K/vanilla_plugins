@@ -5,10 +5,10 @@ if (!defined('APPLICATION')) {
 }
 
 $PluginInfo['Hangman'] = array(
-    'Author' => "Tom Sassen",
-    'AuthorEmail' => 'tom.sassen@hotmail.com',
+    'Author' => "Caylus",
+    'AuthorUrl' => 'https://open.vanillaforums.com/profile/Caylus',
     'Description' => 'Implements a hangman game.',
-    'HasLocale'=>true,
+    'HasLocale' => true,
     'MobileFriendly' => TRUE,
     'Name' => 'Hangman',
     'RequiredApplications' => array('Vanilla' => '2.1'),
@@ -17,14 +17,16 @@ $PluginInfo['Hangman'] = array(
 );
 
 class HangmanPlugin extends Gdn_Plugin {
-public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args) {
-        $commandIndex=$Sender->EventArguments['CommandIndex'];
-        $commands=[
-            "[hstart]X[/hstart]"=>t("Start a new game with the word X."),
-            "[hg]e[/hg]"=>t("Guess the letter 'e'."),
-            "[hrandom]"=>t("Start a new game with a random word. Dictionary plugin has to be enabled!")];
-            $commandIndex->addCommands($commands,$this);
+
+    public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args) {
+        $commandIndex = $Sender->EventArguments['CommandIndex'];
+        $commands = [
+            "[hstart]X[/hstart]" => t("Start a new game with the word X."),
+            "[hg]e[/hg]" => t("Guess the letter 'e'."),
+            "[hrandom]" => t("Start a new game with a random word. Dictionary plugin has to be enabled!")];
+        $commandIndex->addCommands($commands, $this);
     }
+
     private $currentWordID;
     private $currentPost;
 
@@ -58,7 +60,8 @@ public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender
         return "<em>For this function the Dictionary plugin has to be enabled.</em>";
     }
 
-    public function getCSSToAdd() {return "
+    public function getCSSToAdd() {
+        return "
             .try
             {
                 position:absolute;
@@ -97,7 +100,6 @@ public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender
                 background-color: black;
                 color:white;
             }";
-
     }
 
     function detectWord($bbcode, $action, $name, $default, $params, $content) {
@@ -267,4 +269,5 @@ public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender
     }
 
 }
+
 ?>

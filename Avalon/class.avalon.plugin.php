@@ -1,12 +1,14 @@
 <?php
+
 if (!defined('APPLICATION')) {
     exit();
 }
 
 $PluginInfo['Avalon'] = array(
-    'Author' => "Tom Sassen",
-    'AuthorEmail' => 'tom.sassen@hotmail.com',
+    'Author' => "Caylus",
+    'AuthorUrl' => 'https://open.vanillaforums.com/profile/Caylus',
     'Description' => 'Lets you play avalon. Get instructions on proper usage by posting a post containing this command: [pluginexplanation]Avalon[/pluginexplanation]',
+    'HasLocale' => true,
     'MobileFriendly' => TRUE,
     'Name' => 'Avalon',
     'RequiredApplications' => array('Vanilla' => '2.1'),
@@ -15,19 +17,21 @@ $PluginInfo['Avalon'] = array(
     'Version' => '1.0');
 
 class AvalonPlugin extends Gdn_Plugin {
+
     public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args) {
-        $commandIndex=$Sender->EventArguments['CommandIndex'];
-        $commands=[
-            "[avstartgame]User1,User2,User3,User4,User5[/avstartgame]"=>t("Start a game with Users 1 t/m 5."),
-            "[avendgame]"=>t("End a game and show everyone who had what role."),
-            "[avmission]W/F[/avmission]"=>t("Log the result of a mission. (W)in or (F)ail."),
-            "[vastartpoll=reveal]".T("Avalon voting round")."[/vastartpoll]"=>t("Start a poll to accept or reject a team."),
-            "[vastartpoll=hidden]".T("Avalon mission round")."[/vastartpoll]"=>t("Add a poll to determine the success of the mission.")];
-            $commandIndex->addCommands($commands,$this);
+        $commandIndex = $Sender->EventArguments['CommandIndex'];
+        $commands = [
+            "[avstartgame]User1,User2,User3,User4,User5[/avstartgame]" => t("Start a game with Users 1 t/m 5."),
+            "[avendgame]" => t("End a game and show everyone who had what role."),
+            "[avmission]W/F[/avmission]" => t("Log the result of a mission. (W)in or (F)ail."),
+            "[vastartpoll=reveal]" . T("Avalon voting round") . "[/vastartpoll]" => t("Start a poll to accept or reject a team."),
+            "[vastartpoll=hidden]" . T("Avalon mission round") . "[/vastartpoll]" => t("Add a poll to determine the success of the mission.")];
+        $commandIndex->addCommands($commands, $this);
         if (gdn::pluginManager()->isEnabled("VoteAggregator")) {
-            (new VoteAggregatorPlugin())->PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender,$Args);
+            (new VoteAggregatorPlugin())->PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args);
         }
     }
+
     const Goodguy = 1;
     const Merlijn = 2;
     const Percival = 3;
@@ -41,16 +45,14 @@ class AvalonPlugin extends Gdn_Plugin {
     function __construct() {
         $this->currentGameID = false;
         $this->currentPost = false;
-        if(!t('AvalonPlugin.Explanation',""))
-                {
-            require_once __DIR__.'/locale/en.php';
-                }
+        if (!t('AvalonPlugin.Explanation', "")) {
+            require_once __DIR__ . '/locale/en.php';
+        }
     }
 
     public function canAlwaysEdit() {
         return checkPermission('Plugins.Avalon.RunGame');
     }
-
 
     public function getCurrentGame() {
         if ($this->currentGameID) {
@@ -186,8 +188,8 @@ class AvalonPlugin extends Gdn_Plugin {
         }
         $i = 0;
         foreach ($users as $username) {
-            
-            $user = is_numeric($username)?gdn::userModel()->getID($username):gdn::userModel()->getByUsername($username);
+
+            $user = is_numeric($username) ? gdn::userModel()->getID($username) : gdn::userModel()->getByUsername($username);
             if ($user === false) {
                 break;
             }
@@ -276,7 +278,7 @@ class AvalonPlugin extends Gdn_Plugin {
         if (!$game_row->Done) {
             $role_row = gdn::sql()->select('Role')->from("AvPlayers")->where(["UserID" => gdn::session()->UserID, 'GameID' => $id])->get()->firstRow();
             if ($role_row) {
-                $html .= "<p>".t("You are") . $this->getRole($role_row->Role) . ". ";
+                $html .= "<p>" . t("You are") . $this->getRole($role_row->Role) . ". ";
                 if ($role_row->Role === self::Merlijn) {
                     $html.=t("You have received a vision that ") . $game_row->MerlinVision;
                 } else if ($role_row->Role === self::Percival) {

@@ -1,14 +1,15 @@
 <?php
+
 if (!defined('APPLICATION')) {
     exit();
 }
 require "DieParser_2.1.php";
 
 $PluginInfo['DiceRoller'] = array(
-    'Author' => "Tom Sassen",
-    'AuthorEmail' => 'tom.sassen@hotmail.com',
+    'Author' => "Caylus",
+    'AuthorUrl' => 'https://open.vanillaforums.com/profile/Caylus',
     'Description' => 'Implements a dice roll.Get instructions on proper usage by posting a post containing this command: [pluginexplanation]DiceRoller[/pluginexplanation]',
-    "HasLocale"=>true,
+    "HasLocale" => true,
     'MobileFriendly' => TRUE,
     'Name' => 'DiceRoller',
     'RequiredApplications' => array('Vanilla' => '2.1'),
@@ -17,16 +18,16 @@ $PluginInfo['DiceRoller'] = array(
 );
 
 class DiceRollerPlugin extends Gdn_Plugin {
-    
+
     public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args) {
-        $commandIndex=$Sender->EventArguments['CommandIndex'];
-        $commands=[
-            "[roll]1d6[/roll]"=>t("Roll a 6-sided die."),
-            "[roll]5d6b3[/roll]"=>t("Roll 5 six sided dice, sum the best 3."),
-            "[roll]5d10s6[/roll]"=>t("Roll 5d10, every dice with 6 or more is a success."),
-            "[roll]5d10s6f1[/roll]"=>t("5d10, every dice with 6 or more is a success, every dice with 1 or less substracts a success."),
-            "[roll](5*7d6)^2/5+3[/roll]"=>t("Do basic arithmatic with the results of the dice.")];
-            $commandIndex->addCommands($commands,$this);
+        $commandIndex = $Sender->EventArguments['CommandIndex'];
+        $commands = [
+            "[roll]1d6[/roll]" => t("Roll a 6-sided die."),
+            "[roll]5d6b3[/roll]" => t("Roll 5 six sided dice, sum the best 3."),
+            "[roll]5d10s6[/roll]" => t("Roll 5d10, every dice with 6 or more is a success."),
+            "[roll]5d10s6f1[/roll]" => t("5d10, every dice with 6 or more is a success, every dice with 1 or less substracts a success."),
+            "[roll](5*7d6)^2/5+3[/roll]" => t("Do basic arithmatic with the results of the dice.")];
+        $commandIndex->addCommands($commands, $this);
     }
 
     public function PluginCommandParserPlugin_BeforeSaveParserSetup_Handler($Sender, $Args) {
@@ -35,7 +36,7 @@ class DiceRollerPlugin extends Gdn_Plugin {
             'method' => Array($this, 'saveDiceTag'),
         ));
         //There shouldn't be any active metaroll tags in here.
-        $BBCode->AddRule('metaroll',[]);
+        $BBCode->AddRule('metaroll', []);
     }
 
     public function PluginCommandParserPlugin_beforeDisplaySetup_Handler($Sender, $Args) {
@@ -101,12 +102,11 @@ class DiceRollerPlugin extends Gdn_Plugin {
     protected function parseRoll($roll_to_parse, $currentPost) {
         //If for some reason the roll can't be rendered, return false.
         $parser = new Diceparser(str_replace(' ', '', $roll_to_parse));
-        $total=$parser->getResult();
-        if ($total === false)
-            {
+        $total = $parser->getResult();
+        if ($total === false) {
             gdn::controller()->informMessage("Diceexpression is not correct!");
             return false;
-        }else if(is_infinite($total)) {
+        } else if (is_infinite($total)) {
             gdn::controller()->informMessage("Diceexpression leads to overflow!");
             return false;
         } else {

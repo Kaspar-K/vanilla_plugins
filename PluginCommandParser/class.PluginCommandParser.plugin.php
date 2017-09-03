@@ -9,16 +9,16 @@ if (!defined("BBCODE_CHECK")) {
 }
 
 $PluginInfo['PluginCommandParser'] = array(
-    'Name' => 'PluginCommandParser',
+    'Author' => "Caylus",
+    'AuthorUrl' => 'https://open.vanillaforums.com/profile/Caylus',
     'Description' => 'Parses comments, discussions & PMs with custom commands',
-    'Version' => '1.0',
-    'Author' => "Tom Sassen",
-    'AuthorEmail' => 'tom.sassen@hotmail.com',
     'HasLocale' => true,
     'MobileFriendly' => TRUE,
+    'Name' => 'PluginCommandParser',
+    'RegisterPermissions' => ['Plugins.PluginCommandParser.ShowExplanation' => 'Garden.Moderation.Manage'],
     'RequiredApplications' => array('Vanilla' => '2.1'),
     'SettingsUrl' => '/settings/plugincommandparser',
-    'RegisterPermissions' => ['Plugins.PluginCommandParser.ShowExplanation' => 'Garden.Moderation.Manage']
+    'Version' => '1.0'
 );
 
 class PluginCommandParserPlugin extends Gdn_Plugin {
@@ -358,18 +358,18 @@ class PluginCommandParserPlugin extends Gdn_Plugin {
 
 }
 
-    //Function to draw a pseudorandom number, more random than mt_rand
-    function crypto_rand_secure($min, $max) {
-        $range = $max - $min;
-        if ($range == 0)
-            return $min; // not so random...
-        $log = log($range, 2);
-        $bytes = (int) ($log / 8) + 1; // length in bytes
-        $bits = (int) $log + 1; // length in bits
-        $filter = (int) (1 << $bits) - 1; // set all lower bits to 1
-        do {
-            $rnd = hexdec(bin2hex(openssl_random_pseudo_bytes($bytes, $s)));
-            $rnd = $rnd & $filter; // discard irrelevant bits
-        } while ($rnd >= $range);
-        return $min + $rnd;
-    }
+//Function to draw a pseudorandom number, more random than mt_rand
+function crypto_rand_secure($min, $max) {
+    $range = $max - $min;
+    if ($range == 0)
+        return $min; // not so random...
+    $log = log($range, 2);
+    $bytes = (int) ($log / 8) + 1; // length in bytes
+    $bits = (int) $log + 1; // length in bits
+    $filter = (int) (1 << $bits) - 1; // set all lower bits to 1
+    do {
+        $rnd = hexdec(bin2hex(openssl_random_pseudo_bytes($bytes, $s)));
+        $rnd = $rnd & $filter; // discard irrelevant bits
+    } while ($rnd >= $range);
+    return $min + $rnd;
+}

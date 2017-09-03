@@ -5,10 +5,10 @@ if (!defined('APPLICATION')) {
 }
 
 $PluginInfo['Codenames'] = array(
-    'Author' => "Tom Sassen",
-    'AuthorEmail' => 'tom.sassen@hotmail.com',
+    'Author' => "Caylus",
+    'AuthorUrl' => 'https://open.vanillaforums.com/profile/Caylus',
     'Description' => 'Implements the Codenames game for a forum.',
-    'HasLocale'=>true,
+    'HasLocale' => true,
     'MobileFriendly' => TRUE,
     'Name' => 'Codenames',
     'RequiredApplications' => array('Vanilla' => '2.1'),
@@ -17,14 +17,16 @@ $PluginInfo['Codenames'] = array(
 );
 
 class CodenamesPlugin extends Gdn_Plugin {
+
     public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args) {
-        $commandIndex=$Sender->EventArguments['CommandIndex'];
-        $commands=[
-            "[newcngame]X[/newcngame]"=>t("Start a game with a grid of X by X cards."),
-            "[cnhint]X,Y[/cnhint]"=>t("Give X as hint as spymaster, and let your teammates guess Y+1 times. If Y = 0 or Y > 100, Y = 100.")
-            ];
-            $commandIndex->addCommands($commands,$this);
+        $commandIndex = $Sender->EventArguments['CommandIndex'];
+        $commands = [
+            "[newcngame]X[/newcngame]" => t("Start a game with a grid of X by X cards."),
+            "[cnhint]X,Y[/cnhint]" => t("Give X as hint as spymaster, and let your teammates guess Y+1 times. If Y = 0 or Y > 100, Y = 100.")
+        ];
+        $commandIndex->addCommands($commands, $this);
     }
+
     public function __construct() {
         parent::__construct();
     }
@@ -166,8 +168,9 @@ class CodenamesPlugin extends Gdn_Plugin {
                         }
                     }
                     $html.="<input name='CNSkipRequests' type='hidden' value='$numRequests'/>";
-                    if($currentUser>0){
-                    $html.="<input name='CNUserRole' type='hidden' value='$userRole'/>";}
+                    if ($currentUser > 0) {
+                        $html.="<input name='CNUserRole' type='hidden' value='$userRole'/>";
+                    }
                     $html.="<input name='CNGameID' type='hidden' value='$content'/>";
                     $html.="<input name='CNTurn' type='hidden' value='$game->Turn'/>";
                 }
@@ -275,7 +278,7 @@ class CodenamesPlugin extends Gdn_Plugin {
     }
 
     public function PluginController_Codenames_Create($Sender, $Args) {
-        if (gdn::session()->UserID>0&&isset($Args[0]) && isset($Args[1]) && is_numeric($Args[1])) {
+        if (gdn::session()->UserID > 0 && isset($Args[0]) && isset($Args[1]) && is_numeric($Args[1])) {
             $gameid = intval($Args[1]);
             if ($Args[0] == 'enlist') {
                 if (isset($Args[2])) {

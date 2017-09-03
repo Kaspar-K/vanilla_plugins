@@ -5,16 +5,16 @@ if (!defined('APPLICATION')) {
 }
 
 $PluginInfo['VoteAggregator'] = array(
-    'Name' => 'VoteAggregator',
+    'Author' => "Caylus",
+    'AuthorUrl' => 'https://open.vanillaforums.com/profile/Caylus',
     'Description' => 'Lets you vote on stuff. Get instructions on proper usage by posting a post containing this command: [pluginexplanation]VoteAggregator[/pluginexplanation]',
-    'Version' => '1.0',
-    'Author' => "Tom Sassen",
-    'AuthorEmail' => 'tom.sassen@hotmail.com',
+    'HasLocale' => true,
     'MobileFriendly' => TRUE,
-    'HasLocale'=>true,
+    'Name' => 'VoteAggregator',
+    'RegisterPermissions' => ['Plugins.VoteAggregator.CreatePoll' => 'Garden.Moderation.Manage', 'Plugins.VoteAggregator.ClosePoll' => 'Garden.Moderation.Manage', 'Plugins.VoteAggregator.Vote' => 1],
     'RequiredApplications' => array('Vanilla' => '2.1'),
     'RequiredPlugins' => array('PluginCommandParser' => '1.0'),
-    'RegisterPermissions' => ['Plugins.VoteAggregator.CreatePoll' => 'Garden.Moderation.Manage', 'Plugins.VoteAggregator.ClosePoll' => 'Garden.Moderation.Manage', 'Plugins.VoteAggregator.Vote' => 1]
+    'Version' => '1.0'
 );
 
 class VoteAggregatorPlugin extends Gdn_Plugin {
@@ -25,17 +25,17 @@ class VoteAggregatorPlugin extends Gdn_Plugin {
     function __construct() {
         
     }
-    
+
     public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args) {
-        $commandIndex=$Sender->EventArguments['CommandIndex'];
-        $commands=[
-            "[vastartpoll]X[/vastartpoll]"=>t("Start a basic poll with title X. For example: Lynch voting round/Mayor voting round."),
-            "[vastartpoll=hidden]X[/vastartpoll]"=>t("Start a poll. Never show what people have voted what."),
-            "[vastartpoll=reveal]X[/vastartpoll]"=>t("Start a poll. Show after poll has closed what people voted."),
-            "[vavote]Option[/vavote]"=>t("Vote for option X. Overwrites earlier votes."),
-            "[vaclosepoll]"=>t("Close active poll/quoted poll."),
-            "[vacloseall]"=>t("Close all active polls in this discussion.")];
-            $commandIndex->addCommands($commands,$this);
+        $commandIndex = $Sender->EventArguments['CommandIndex'];
+        $commands = [
+            "[vastartpoll]X[/vastartpoll]" => t("Start a basic poll with title X. For example: Lynch voting round/Mayor voting round."),
+            "[vastartpoll=hidden]X[/vastartpoll]" => t("Start a poll. Never show what people have voted what."),
+            "[vastartpoll=reveal]X[/vastartpoll]" => t("Start a poll. Show after poll has closed what people voted."),
+            "[vavote]Option[/vavote]" => t("Vote for option X. Overwrites earlier votes."),
+            "[vaclosepoll]" => t("Close active poll/quoted poll."),
+            "[vacloseall]" => t("Close all active polls in this discussion.")];
+        $commandIndex->addCommands($commands, $this);
     }
 
     public function PluginCommandParserPlugin_BeforeSaveParserSetup_Handler($Sender, $Args) {
@@ -123,7 +123,6 @@ class VoteAggregatorPlugin extends Gdn_Plugin {
         $html = $this->vote(gdn::session()->UserID, $content);
         return $html;
     }
-
 
     public function renderPoll($bbcode, $action, $name, $default, $params, $content) {
         if ($action === BBCODE_CHECK) {
@@ -264,7 +263,8 @@ class VoteAggregatorPlugin extends Gdn_Plugin {
         return '<div class="VAVote' . $class . '">' . $vote . '</div>';
     }
 
-    public function getCSSToAdd(){ return "
+    public function getCSSToAdd() {
+        return "
             .VAPoll
             {
 
@@ -299,7 +299,6 @@ class VoteAggregatorPlugin extends Gdn_Plugin {
             {
                 font-style:italic;   
             }";
-
     }
 
 }

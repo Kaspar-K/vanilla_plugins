@@ -1,29 +1,31 @@
 <?php
+
 if (!defined('APPLICATION'))
     die();
 
 $PluginInfo['Mastermind'] = array(
-    'Name' => 'Mastermind',
+    'Author' => "Caylus",
+    'AuthorUrl' => 'https://open.vanillaforums.com/profile/Caylus',
     'Description' => 'Mastermind plugin. Get instructions on proper usage by posting a post containing this command: [pluginexplanation]Mastermind[/pluginexplanation]',
-    'Version' => '1.1',
-    'Author' => "Tom",
-    'AuthorEmail' => 'tom.sassen@hotmail.com',
-    'RequiredApplications' => array('Vanilla' => '>=2'),
+    'HasLocale' => true,
     'MobileFriendly' => TRUE,
+    'Name' => 'Mastermind',
+    'RequiredApplications' => array('Vanilla' => '>=2'),
     'RequiredPlugins' => array('PluginCommandParser' => 1.0),
+    'Version' => '1.1'
 );
 
 class MastermindPlugin extends Gdn_Plugin {
-    public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args) {
-        $commandIndex=$Sender->EventArguments['CommandIndex'];
-        $commands=[
-            "[mg]".T("Red green black blue")."[/mg]"=>t("Create a new code for people to guess with the specified colours."),
-            "[mr]X[/mr]"=>t("Create a random code of length X."),
-            "[mg]".T("black green yellow blue")."[/mg]"=>t("Make a guess on either a quoted code or the latest code.")
-            ];
-            $commandIndex->addCommands($commands,$this);
-    }
 
+    public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args) {
+        $commandIndex = $Sender->EventArguments['CommandIndex'];
+        $commands = [
+            "[mg]" . T("Red green black blue") . "[/mg]" => t("Create a new code for people to guess with the specified colours."),
+            "[mr]X[/mr]" => t("Create a random code of length X."),
+            "[mg]" . T("black green yellow blue") . "[/mg]" => t("Make a guess on either a quoted code or the latest code.")
+        ];
+        $commandIndex->addCommands($commands, $this);
+    }
 
     private $currentCode;
     private $currentPost;
@@ -142,7 +144,7 @@ class MastermindPlugin extends Gdn_Plugin {
                         $text.=$codeResult->Guessed ? "<div class='MMPin' style='background-color: " . Code::getColorNameFromNumber($pins[$i]) . ";'></div>" : "x-";
                     }
                     $text.=$codeResult->Guessed ? "<div class='MMPin' style='background-color: " . Code::getColorNameFromNumber($pins[$numPins - 1]) . ";'></div>" : "x";
-                    $text.="</div><div class='Spoiler'><p>".t("Earlier guesses").":</p>";
+                    $text.="</div><div class='Spoiler'><p>" . t("Earlier guesses") . ":</p>";
                     while ($row = $guessResult->nextRow()) {
                         $text.=$this->RenderGuessTag($bbcode, $action, $name, $default, $params, $row->GuessID);
                     }
@@ -260,7 +262,8 @@ class MastermindPlugin extends Gdn_Plugin {
     }
 
     // Adds CSS to the relevant pages
-    public function getCSSToAdd(){ return ".MMGuess
+    public function getCSSToAdd() {
+        return ".MMGuess
             {
                 background: #f3f3f3;
                 background: rgba(0, 0, 0, 0.05);

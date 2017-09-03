@@ -3,41 +3,44 @@ if (!defined('APPLICATION'))
     die();
 
 $PluginInfo['TimelineGame'] = array(
-    'Name' => 'TimelineGame',
+    'Author' => "Caylus",
+    'AuthorUrl' => 'https://open.vanillaforums.com/profile/Caylus',
     'EventDescription' => 'Plugin to play a timeline game.',
-    'Version' => '1.0',
-    'Author' => "Tom",
-    'AuthorEmail' => 'tom.sassen@hotmail.com',
-    'RequiredApplications' => array('Vanilla' => '>=2'),
+    'HasLocale' => true,
     'MobileFriendly' => TRUE,
+    'Name' => 'TimelineGame',
+    'RequiredApplications' => array('Vanilla' => '>=2'),
     'RequiredPlugins' => array('PluginCommandParser' => 1.0),
-    'SettingsUrl' => '/settings/timelinegame'
+    'SettingsUrl' => '/settings/timelinegame',
+    'Version' => '1.0'
 );
 
 class TimelineGamePlugin extends Gdn_Plugin {
+
     public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args) {
-        $commandIndex=$Sender->EventArguments['CommandIndex'];
-        $commands=[
-            "[tgstart]X[/tgstart]"=>t("Start a new game!"),
-            "[tgcheck]"=>t("Check the time line for errors. If there is one, last person to add an event loses. Otherwise, you lose."),
+        $commandIndex = $Sender->EventArguments['CommandIndex'];
+        $commands = [
+            "[tgstart]X[/tgstart]" => t("Start a new game!"),
+            "[tgcheck]" => t("Check the time line for errors. If there is one, last person to add an event loses. Otherwise, you lose."),
             "[timeline=X]
 (1):<--
 (2): Battle of Hastings.
 (3): WOII
-[/timeline]"=>t("Event takes place before the other events."),
+[/timeline]" => t("Event takes place before the other events."),
             "[timeline=X]
 (1): Battle of Hastings.
 (2): <--
 (3): WOII
-[/timeline]"=>t("Event takes place before event 3 and after event 1."),
+[/timeline]" => t("Event takes place before event 3 and after event 1."),
             "[timeline=X]
 (1): Battle of Hastings.
 (2): WOII
 (3): <--
-[/timeline]"=>t("Event takes place after all other events.")
-            ];
-            $commandIndex->addCommands($commands,$this);
+[/timeline]" => t("Event takes place after all other events.")
+        ];
+        $commandIndex->addCommands($commands, $this);
     }
+
     private $currentGame;
     private $currentPost;
 
@@ -88,7 +91,7 @@ class TimelineGamePlugin extends Gdn_Plugin {
                 $correct = $checkedTimeLine->Correct;
                 $loser = $correct ? gdn::session()->UserID : $gameToCheck->LastUserID;
                 $loser_name = strip_tags((new UserModel())->getID($loser)->Name, ENT_QUOTES);
-                $finalHTML = t("The timeline was")." <strong>" . t($correct ? "correct" : "incorrect") . "</strong>. $loser_name".t(" loses! ") . $checkedTimeLine->HTML;
+                $finalHTML = t("The timeline was") . " <strong>" . t($correct ? "correct" : "incorrect") . "</strong>. $loser_name" . t(" loses! ") . $checkedTimeLine->HTML;
                 gdn::sql()->update("TGTimeLineGames")->set(['HTML' => $finalHTML, 'LostBy' => $loser])->where('GameID', $gameID)->put();
                 return "[timeline=$gameID]Won![/]";
             }
@@ -468,7 +471,8 @@ class TimelineGamePlugin extends Gdn_Plugin {
         <?php
     }
 
-    public function getPostCSSToAdd(){ return "
+    public function getPostCSSToAdd() {
+        return "
             .TGNewEvent{
                 font-style:italic;
             }
