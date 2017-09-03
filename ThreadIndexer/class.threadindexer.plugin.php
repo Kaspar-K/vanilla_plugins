@@ -17,14 +17,6 @@ $PluginInfo['ThreadIndexer'] = array(
 
 class ThreadIndexerPlugin extends Gdn_Plugin {
 
-    public function getExplanation() {
-        return "A plugin to create an alphabetic index of a thread.";
-    }
-
-    public function getExplanation_nl() {
-        return "Een plugin om een alfabetische index van een thread te maken.";
-    }
-
     private $currentPost;
     private $currentCommentID;
     private $IndexHTML;
@@ -32,10 +24,8 @@ class ThreadIndexerPlugin extends Gdn_Plugin {
     public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args) {
         $commandIndex=$Sender->EventArguments['CommandIndex'];
         $commands=[
-            "[tiindex]X[/tiindex]"=>
-            [0=>"Only works in the first post of a discussion! Creates the index. You can only have one index per discussion.",
-                'nl'=>"Werkt alleen in de eerste post van een discussie! Creeërt de index. Je kunt maar één index per discussie hebben."
-                ],"[tientry]X[/tientry]"=>[0=>"Adds a link with title X to this comment in the index.",'nl'=>"Voegt een link naar dit comment toe met titel X."]];
+            "[tiindex]X[/tiindex]"=>t("Only works in the first post of a discussion! Creates the index. You can only have one index per discussion."),
+            "[tientry]X[/tientry]"=>t("Adds a link with title X to this comment in the index.")];
             $commandIndex->addCommands($commands,$this);
     }
     public function PluginCommandParserPlugin_BeforeSaveParserSetup_Handler($Sender, $Args) {

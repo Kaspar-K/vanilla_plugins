@@ -7,3 +7,4 @@ $Definition['Whether or not to also enable functions in private messages.']="Wel
 $Definition['Whether or not to reload the whole page on posting a private message. Use this option if it interferes with other plugins.']=
         "Wel of niet de hele pagina herladen na het posten van een PM. Gebruik deze optie als de plugin andere plugins verstoort";
 $Definition[" also uses the following commands of other plugins:"]=" gebruikt ook de volgende commando's van andere plugins:";
+$Definition["Available commands"]="Beschikbare commando's";

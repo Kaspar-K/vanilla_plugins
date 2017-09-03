@@ -17,30 +17,13 @@ class MastermindPlugin extends Gdn_Plugin {
     public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args) {
         $commandIndex=$Sender->EventArguments['CommandIndex'];
         $commands=[
-            "[mg]".T("rood groen zwart blauw")."[/mg]"=>
-            [0=>"Create a new code for people to guess with the specified colours.",
-                'nl'=>"Maak een nieuwe code aan voor mensen om te raden met de genoemde kleuren."
-                ],
-            "[mr]X[/mr]"=>
-            [0=>"Create a random code of length X.",
-                'nl'=>"Maak een nieuwe random code aan van lengte X."],
-            "[mg]".T("zwart groen geel blauw")."[/mg]"=>
-            [0=>"Make a guess on either a quoted code or the latest code.",
-                'nl'=>"Doe een gok op een gequote code of de laatstgeposte code."]
+            "[mg]".T("Red green black blue")."[/mg]"=>t("Create a new code for people to guess with the specified colours."),
+            "[mr]X[/mr]"=>t("Create a random code of length X."),
+            "[mg]".T("black green yellow blue")."[/mg]"=>t("Make a guess on either a quoted code or the latest code.")
             ];
             $commandIndex->addCommands($commands,$this);
     }
 
-    public function getExplanation() {
-        return "A plugin to play MasterMind.
-
-It has the followings colours: Red black yellow green blue orange white pink and x (as a hole).";
-    }
-    public function getExplanation_nl() {
-        return "Een plugin om mastermind mee te spelen.
-
-Het heeft de volgende kleuren: Rood zwart geel groen blauw oranje wit roze en x (als gat).";
-    }
 
     private $currentCode;
     private $currentPost;
@@ -73,7 +56,7 @@ Het heeft de volgende kleuren: Rood zwart geel groen blauw oranje wit roze en x 
         if (is_numeric($content) && $content > 0 && $content < 20) {
             $random_code = [];
             for ($i = 0; $i < $content; $i++) {
-                $random_code[] = mt_rand(0, 8);
+                $random_code[] = crypto_rand_secure(0, 8);
             }
 
             $code = Code::saveMasterCode($random_code, $this->currentPost, true);
@@ -159,7 +142,7 @@ Het heeft de volgende kleuren: Rood zwart geel groen blauw oranje wit roze en x 
                         $text.=$codeResult->Guessed ? "<div class='MMPin' style='background-color: " . Code::getColorNameFromNumber($pins[$i]) . ";'></div>" : "x-";
                     }
                     $text.=$codeResult->Guessed ? "<div class='MMPin' style='background-color: " . Code::getColorNameFromNumber($pins[$numPins - 1]) . ";'></div>" : "x";
-                    $text.="</div><div class='Spoiler'><p>Earlier guesses:</p>";
+                    $text.="</div><div class='Spoiler'><p>".t("Earlier guesses").":</p>";
                     while ($row = $guessResult->nextRow()) {
                         $text.=$this->RenderGuessTag($bbcode, $action, $name, $default, $params, $row->GuessID);
                     }

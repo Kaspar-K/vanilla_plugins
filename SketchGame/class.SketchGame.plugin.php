@@ -1,14 +1,15 @@
 <?php
 // Define the plugin:
 $PluginInfo['SketchGame'] = array(
-    'Name' => 'SketchGame',
-    'Description' => 'A sketching game adapted for Vanilla.Get instructions on proper usage by posting a post containing this command: [pluginexplanation]SketchGame[/pluginexplanation]',
-    'Version' => '1.0',
     'Author' => "Tom Sassen",
     'AuthorEmail' => 'tom.sassen@hotmail.com',
+    'Description' => 'A sketching game adapted for Vanilla.Get instructions on proper usage by posting a post containing this command: [pluginexplanation]SketchGame[/pluginexplanation]',
+    'HasLocale'=>true,
     'MobileFriendly' => TRUE,
+    'Name' => 'SketchGame',
+    'RequiredPlugins' => array('PluginCommandParser' => '1.0',
     'SettingsUrl' => '/settings/sketchgame',
-    'RequiredPlugins' => array('PluginCommandParser' => '1.0')
+    'Version' => '1.0',)
 );
 
 class SketchGame extends Gdn_Plugin {
@@ -16,30 +17,13 @@ class SketchGame extends Gdn_Plugin {
     public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args) {
         $commandIndex=$Sender->EventArguments['CommandIndex'];
         $commands=[
-            "[wsrandom]"=>
-            [0=>"If the dictionary plugin is also enabled, start playing with a random hint.",
-                'nl'=>"Als de Dictionary plugin ook aanwezig is, start met spelen met een willekeurige hint."
-                ],"[wsstartchain]Hint[/wsstartchain]"=>
-            [0=>"Start playing with 'Hint' as first hint.",
-                'nl'=>"Start met spelen met 'Hint' als de eerste hint."],
-            "[wsreveal]"=>
-            [0=>"When you had fun, want to end the game and see the whole chain, you can use [wsreveal] to reveal it to all players.",
-                'nl'=>"Zodra het leuk geweest is en je de hele keten wil zien, kun je [wsreveal] gebruiken om de keten te laten zien."]];
+            "[wsrandom]"=>t("If the dictionary plugin is also enabled, start playing with a random hint."),
+            "[wsstartchain]Hint[/wsstartchain]"=>t("Start playing with 'Hint' as first hint."),
+            "[wsreveal]"=>t("When you had fun, want to end the game and see the whole chain, you can use [wsreveal] to reveal it to all players.")];
             $commandIndex->addCommands($commands,$this);
     }
 
-    public function getExplanation() {
-        return "A sketching game.<br/>
-When a game has started, players need to claim a hint first before they can see it.<br/>
-If the hint is an image, they have to give a description. If the hint is a description, they have to sketch a hint.";
-    }
 
-    public function getExplanation_nl() {
-        return "Een schets spel.<br/>
-Zodra een spel gestart is, moeten mensen eerst de hint 'claimen' voordat ze hem te zien krijgen.<br/>
-Als de hint een plaatje is, moeten ze een woord invoeren, als de hint een woord is moeten ze een plaatje schetsen.";
-        
-    }
 
     const text_type = 0;
     const image_type = 1;
@@ -70,7 +54,7 @@ Als de hint een plaatje is, moeten ze een woord invoeren, als de hint een woord 
             $randomWord = (new DictionaryPlugin())->getRandomWord();
             return $this->startSketchChain($bbcode, $action, $name, $default, $params, $randomWord);
         }
-        return "To use the 'wsrandom' command the Dictionary plugin has to be enabled!";
+        return t("To use the 'wsrandom' command the Dictionary plugin has to be enabled!");
     }
 
     function startSketchChain($bbcode, $action, $name, $default, $params, $content) {
@@ -84,7 +68,7 @@ Als de hint een plaatje is, moeten ze een woord invoeren, als de hint een woord 
                 $chain_link_id = gdn::sql()->insert("WSJMNChainLinks", ['ChainID' => $chain_id, 'UserID' => gdn::session()->UserID, 'Content' => $description, 'ContentType' => self::text_type]);
                 if ($chain_link_id) {
                     gdn::sql()->update("WSJMNChains", ['LastLinkID' => $chain_link_id], ['ChainID' => $chain_id])->put();
-                    return "New chain: [wslink]$chain_link_id" . "[/wslink]";
+                    return t("New chain").": [wslink]$chain_link_id" . "[/wslink]";
                 }
             }
         }
@@ -111,9 +95,9 @@ Als de hint een plaatje is, moeten ze een woord invoeren, als de hint een woord 
         $post = "";
         if ($start && $start->ContentType == self::text_type) {
 
-            $post.="<span>The chain started with: <strong>" . $start->Content . "</strong></span><div class='Spoiler'>";
+            $post.="<span>".t("The chain started with").": <strong>" . $start->Content . "</strong></span><div class='Spoiler'>";
             while ($row = $rows->nextRow()) {
-                $post.="<br/><strong>" . $row->Name . "</strong> posted: " . $this->getLinkHTML($row->LinkID, false);
+                $post.="<br/><strong>" . $row->Name . "</strong> ".t("posted").": " . $this->getLinkHTML($row->LinkID, false);
             }
         }
         return $this->chainHTML[$chainid] = "$post</div>";
@@ -126,7 +110,7 @@ Als de hint een plaatje is, moeten ze een woord invoeren, als de hint een woord 
         $chain = gdn::sql()->select('l.ChainID')->from("WSJMNChainLinks l")->join('WSJMNChains c', "c.ChainID=l.ChainID")->where(["l.LinkID" => $this->currentLinkID, 'c.UserID' => gdn::session()->UserID, 'c.Revealed' => 0])->get()->firstRow();
         if ($chain) {
             gdn::sql()->update("WSJMNChains", ['Revealed' => 1], ['ChainID' => $chain->ChainID])->put();
-            return "[Chain revealed!]";
+            return "[".t("Chain revealed")."!]";
         }
         return "[wsreveal]";
     }
@@ -226,7 +210,7 @@ Als de hint een plaatje is, moeten ze een woord invoeren, als de hint een woord 
                 'LabelCode' => 'Imgur API Client ID',
                 'Control' => 'TextBox',
                 'Default' => C('Plugins.SketchGame.ClientID', ''),
-                'Description' => 'Register for Imgur API access at: <a href="https://api.imgur.com/oauth2/addclient">https://api.imgur.com/oauth2/addclient</a>'
+                'Description' => t('Register for Imgur API access at').': <a href="https://api.imgur.com/oauth2/addclient">https://api.imgur.com/oauth2/addclient</a>'
             ), 'Plugins.SketchGame.Timer' => array(
                 'Items' => [0 => "1:00", 1 => "2:00", 2 => "4:00", 3 => "8:00", 4 => "16:00"],
                 'LabelCode' => T('How long people have to sketch:'),
@@ -267,7 +251,8 @@ Als de hint een plaatje is, moeten ze een woord invoeren, als de hint een woord 
                 display:block;
                 border:solid black 2px;
     }";}
-    function getDynamicJSToAdd(){return (gdn::session()->UserID > 0)?"
+    function getDynamicJSToAdd(){
+        return (gdn::session()->UserID > 0)?"
                     function claim(button, id)
                     {
                         $.post(gdn.url('plugin/sketchgame/claim/'), {'key': '".gdn::session()->transientKey()."', 'linkid': id}, function (data) {
@@ -294,7 +279,7 @@ Als de hint een plaatje is, moeten ze een woord invoeren, als de hint een woord 
                         };
                         xhttp.send(fd);
                         var em = document.createElement(\"em\");
-                        em.innerHTML = \"Uploading image to imgur, please wait...\";
+                        em.innerHTML = \"".t("Uploading image to imgur, please wait")."...\";
                         sketchdiv.appendChild(em);
                     }
                     function postPicture(imgurResponse, id)
@@ -351,7 +336,7 @@ Als de hint een plaatje is, moeten ze een woord invoeren, als de hint een woord 
     public function formatContent($userid, $content, $type) {
         $username = gdn::userModel()->getID($userid)->Name;
         if ($type == self::text_type) {
-            $html = "<p class='WSEntry'><strong>$username</strong> posted: " . htmlspecialchars($content, ENT_QUOTES) . "</p>";
+            $html = "<p class='WSEntry'><strong>$username</strong> ".t("posted").": " . htmlspecialchars($content, ENT_QUOTES) . "</p>";
             return $html;
         } else {
             $image = gdn::sql()->select('ImgurID')->from('WSJMNImgurImgages')->where('ImageID', $content)->get()->firstRow();
@@ -380,9 +365,9 @@ Als de hint een plaatje is, moeten ze een woord invoeren, als de hint een woord 
             }
             $claim = intval($chain_link->ClaimedBy);
             if ($claim < 0 || $chain_link->LastLinkID != $link_id || gdn::session()->UserID <1) {
-                return $this->linkHTML[$link_id] = "<p>This entry is still hidden.</p>";
+                return $this->linkHTML[$link_id] = "<p>".t("This entry is still hidden")."</p>";
             } else if ($claim == 0) {
-                return $this->linkHTML[$link_id] = "<div><input type='button' value='Claim this link in the chain!' onclick='claim(this,$link_id)'></div>";
+                return $this->linkHTML[$link_id] = "<div><input type='button' value='".t("Claim this link in the chain")."!' onclick='claim(this,$link_id)'></div>";
             } else if ($claim == gdn::session()->UserID) {
                 $html = $this->formatContent($chain_link->UserID, $chain_link->Content, $chain_link->ContentType);
                 if ($chain_link->ContentType === self::text_type) {
@@ -396,8 +381,8 @@ Als de hint een plaatje is, moeten ze een woord invoeren, als de hint een woord 
                             '<div class="SketchGameCanvas">' .
                             '<div class="rect"></div>' .
                             '<canvas width="400" height="400" data-minutes="' . $minutes . '" data-seconds="0" data-sketchid="' . $link_id . '"></canvas>' .
-                            '<p class="smallbrush">Small brush</p><p class="bigbrush">Big brush</p><p class="smalleraser">Small eraser</p>' .
-                            '<p class="bigeraser">Big eraser</p>' .
+                            '<p class="smallbrush">'.t("Small brush").'</p><p class="bigbrush">'.t("Big brush").'</p><p class="smalleraser">'.t("Small eraser").'</p>' .
+                            '<p class="bigeraser">'.t("Big eraser").'</p>' .
                             '<h1>Time:</h1>' .
                             '<h2 class="time">' . $minutes . ':00</h2>' .
                             '<script>initializeCanvasses();</script>' .
@@ -407,11 +392,11 @@ Als de hint een plaatje is, moeten ze een woord invoeren, als de hint een woord 
                     $html.="<input id='wstextfield$this->sentenceCounter' type='text' value='Short sentence'><input type='button' value='Submit!' onclick='submitShortSentence($this->sentenceCounter,$link_id)'>";
                 }
                 if (c('Plugins.SketchGame.Unclaim', false)) {
-                    return $this->linkHTML[$link_id] = "<div><input type='button' value='Release your claim on the link in this chain!' onclick='unclaim(this,$link_id)'>$html</div>";
+                    return $this->linkHTML[$link_id] = "<div><input type='button' value='".t("Release your claim on the link in this chain")."!' onclick='unclaim(this,$link_id)'>$html</div>";
                 }
                 return $this->linkHTML[$link_id] = $html;
             } else {
-                return $this->linkHTML[$link_id] = "This word has been claimed by " . gdn::userModel()->getID($claim)['Name'];
+                return $this->linkHTML[$link_id] = t("This word has been claimed by ") . gdn::userModel()->getID($claim)['Name'];
             }
         }
     }

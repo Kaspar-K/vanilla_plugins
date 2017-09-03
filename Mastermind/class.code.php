@@ -29,10 +29,15 @@ class Code {
     //Lookup table to convert a color name to a color ID (can both be English or Dutch)
     public static function getIndexFromColorName($name)
             {
-        $lookup = array("rood" => 0, "geel" => 1, "oranje" => 2, "groen" => 3, "blauw" => 4, "zwart" => 5, "roze" => 6, "wit" => 7, "x" => 8, "red" => 0, "yellow" => 1, "orange" => 2, "green" => 3, "blue" => 4, "black" => 5, "pink" => 6, "white" => 7);
-        if(isset($lookup[$name]))
+        $lookup=t("mastermind.".$name,"");
+        if($lookup&&is_numeric($lookup)&&$lookup<7)
+        {
+            return $lookup;
+        }
+        $default_lookup = array("x" => 8, "red" => 0, "yellow" => 1, "orange" => 2, "green" => 3, "blue" => 4, "black" => 5, "pink" => 6, "white" => 7);
+        if(isset($default_lookup[$name]))
             {
-            return $lookup[$name];
+            return $default_lookup[$name];
             }
         return false;
             }

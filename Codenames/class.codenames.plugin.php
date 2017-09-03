@@ -331,7 +331,7 @@ class CodenamesPlugin extends Gdn_Plugin {
         }
         for ($i = 0; $i < $cube; $i++) {
             $temp = $spies[$i];
-            $index = $this->crypto_rand_secure($i, $cube - 1);
+            $index = crypto_rand_secure($i, $cube - 1);
             $spies[$i] = $spies[$index];
             $spies[$index] = $temp;
         }
@@ -344,22 +344,6 @@ class CodenamesPlugin extends Gdn_Plugin {
             $game.=$spies[$i * $size + $j] . ',' . $dictionary->getRandomWord();
         }
         return substr($game, 1);
-    }
-
-//Function to draw a pseudorandom number, more random than mt_rand
-    function crypto_rand_secure($min, $max) {
-        $range = $max - $min;
-        if ($range == 0)
-            return $min; // not so random...
-        $log = log($range, 2);
-        $bytes = (int) ($log / 8) + 1; // length in bytes
-        $bits = (int) $log + 1; // length in bits
-        $filter = (int) (1 << $bits) - 1; // set all lower bits to 1
-        do {
-            $rnd = hexdec(bin2hex(openssl_random_pseudo_bytes($bytes, $s)));
-            $rnd = $rnd & $filter; // discard irrelevant bits
-        } while ($rnd >= $range);
-        return $min + $rnd;
     }
 
     public function Setup() {

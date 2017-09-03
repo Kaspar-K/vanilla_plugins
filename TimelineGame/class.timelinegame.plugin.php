@@ -18,56 +18,26 @@ class TimelineGamePlugin extends Gdn_Plugin {
     public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args) {
         $commandIndex=$Sender->EventArguments['CommandIndex'];
         $commands=[
-            "[tgstart]X[/tgstart]"=>
-            [0=>"Start a new game!",
-                'nl'=>"Start een nieuw spel!"
-                ],
-            "[tgcheck]"=>
-            [0=>"Check the time line for errors. If there is one, last person to add an event loses. Otherwise, you lose.",
-                'nl'=>"Check de tijdlijn voor fouten. Als er één is, verliest de laatste persoon die een gebeurtenis heeft toegevoegd. Anders verlies jij."
-                ],
+            "[tgstart]X[/tgstart]"=>t("Start a new game!"),
+            "[tgcheck]"=>t("Check the time line for errors. If there is one, last person to add an event loses. Otherwise, you lose."),
             "[timeline=X]
 (1):<--
 (2): Battle of Hastings.
 (3): WOII
-[/timeline]"=>
-            [
-                0=>"Event takes place before the other events.",
-                'nl'=>"De gebeurtenis vindt voor alle andere gebeurtenissen plaats."]
-            ,
+[/timeline]"=>t("Event takes place before the other events."),
             "[timeline=X]
 (1): Battle of Hastings.
 (2): <--
 (3): WOII
-[/timeline]"=>
-            [
-                0=>"Event takes place before event 3 and after event 1.",
-                'nl'=>"De gebeurtenis vindt voor 3 plaats maar na 1."
-                ]
-            ,
+[/timeline]"=>t("Event takes place before event 3 and after event 1."),
             "[timeline=X]
 (1): Battle of Hastings.
 (2): WOII
 (3): <--
-[/timeline]"=>
-            [
-                0=>"Event takes place after all other events.",
-                'nl'=>"De gebeurtenis is het meest recent van alle andere gebeurtenissen."
-                ]
+[/timeline]"=>t("Event takes place after all other events.")
             ];
             $commandIndex->addCommands($commands,$this);
     }
-
-    public function getExplanation() {
-        return "A plugin to test your knowledge of history.
-You can upload your own timelines to pick events from in the settings.";
-    }
-
-    public function getExplanation_nl() {
-        return "Een plugin om je geschiedenis kennis mee te testen.
-Eigen gebeurtenissen zijn up te loaden in de settings.";
-    }
-
     private $currentGame;
     private $currentPost;
 
@@ -118,7 +88,7 @@ Eigen gebeurtenissen zijn up te loaden in de settings.";
                 $correct = $checkedTimeLine->Correct;
                 $loser = $correct ? gdn::session()->UserID : $gameToCheck->LastUserID;
                 $loser_name = strip_tags((new UserModel())->getID($loser)->Name, ENT_QUOTES);
-                $finalHTML = "The timeline was <strong>" . ($correct ? "correct" : "incorrect") . "</strong>. $loser_name loses! " . $checkedTimeLine->HTML;
+                $finalHTML = t("The timeline was")." <strong>" . t($correct ? "correct" : "incorrect") . "</strong>. $loser_name".t(" loses! ") . $checkedTimeLine->HTML;
                 gdn::sql()->update("TGTimeLineGames")->set(['HTML' => $finalHTML, 'LostBy' => $loser])->where('GameID', $gameID)->put();
                 return "[timeline=$gameID]Won![/]";
             }
@@ -325,7 +295,7 @@ Eigen gebeurtenissen zijn up te loaden in de settings.";
             return false;
         }
         for ($i = 0; $i < 100; $i++) {
-            $eventIndex = $this->crypto_rand_secure(0, $total - 1);
+            $eventIndex = crypto_rand_secure(0, $total - 1);
             $event_lower = 0;
             foreach ($drawPile as $event_upper => $name) {
                 if ($eventIndex < $event_upper) {
@@ -340,22 +310,6 @@ Eigen gebeurtenissen zijn up te loaden in de settings.";
             }
         }
         return false;
-    }
-
-    //Function to draw a pseudorandom number, more random than mt_rand
-    function crypto_rand_secure($min, $max) {
-        $range = $max - $min;
-        if ($range == 0)
-            return $min; // not so random...
-        $log = log($range, 2);
-        $bytes = (int) ($log / 8) + 1; // length in bytes
-        $bits = (int) $log + 1; // length in bits
-        $filter = (int) (1 << $bits) - 1; // set all lower bits to 1
-        do {
-            $rnd = hexdec(bin2hex(openssl_random_pseudo_bytes($bytes, $s)));
-            $rnd = $rnd & $filter; // discard irrelevant bits
-        } while ($rnd >= $range);
-        return $min + $rnd;
     }
 
     public function addNewEventsFromFile($unsafe_name, $unsafe_content) {

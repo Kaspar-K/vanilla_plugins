@@ -9,12 +9,15 @@
 $dictionaries=gdn::sql()->select("DictionaryID,NumWords,Dictionary")->from("Dictionaries")->get();
 while(($row=$dictionaries->nextRow()))
 {
-    echo "<div class='DictionaryItem'><p class='DictionaryDescription'>$row->Dictionary: $row->NumWords word(s)</p><div class='DictionaryButtons'><p onclick='window.open(gdn.url(\"plugin/dictionary/download/\"+$row->DictionaryID))'>Download dictionary</p><p onclick='removeDictionary(\"$row->DictionaryID\",\"$row->Dictionary\")'>Remove Item</p></div></div>";
+    echo "<div class='DictionaryItem'><p class='DictionaryDescription'>$row->Dictionary: $row->NumWords word(s)</p><div class='DictionaryButtons'><p onclick='window.open(gdn.url(\"plugin/dictionary/download/\"+$row->DictionaryID))'>".
+            t("Download dictionary")."</p><p onclick='removeDictionary(\"$row->DictionaryID\",\"$row->Dictionary\")'>".
+            t("Remove Item")."</p></div></div>";
+        
 }
 ?>
 </div>
-<p>Upload new dictionary:</p>
+<p><?php=t("Upload new dictionary");?>:</p>
 <input type="file" id="file">
-<p>New dictionary name:</p>
+<p><?php=t("New dictionary name");?>:</p>
 <input type="text" id="name">
-<input type="button" onclick="addNewDictionary()" value="Upload the dictionary!">
+<input type="button" onclick="addNewDictionary()" value="<?php=t("Upload new dictionary");?>!">
