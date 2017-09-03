@@ -5,14 +5,15 @@ if (!defined('APPLICATION')) {
 require "DieParser_2.1.php";
 
 $PluginInfo['DiceRoller'] = array(
-    'Name' => 'DiceRoller',
-    'Description' => 'Implements a dice roll.Get instructions on proper usage by posting a post containing this command: [pluginexplanation]DiceRoller[/pluginexplanation]',
-    'Version' => '3.0',
     'Author' => "Tom Sassen",
     'AuthorEmail' => 'tom.sassen@hotmail.com',
+    'Description' => 'Implements a dice roll.Get instructions on proper usage by posting a post containing this command: [pluginexplanation]DiceRoller[/pluginexplanation]',
+    "HasLocale"=>true,
     'MobileFriendly' => TRUE,
+    'Name' => 'DiceRoller',
     'RequiredApplications' => array('Vanilla' => '2.1'),
-    'RequiredPlugins' => array('PluginCommandParser' => '1.0')
+    'RequiredPlugins' => array('PluginCommandParser' => '1.0'),
+    'Version' => '3.0'
 );
 
 class DiceRollerPlugin extends Gdn_Plugin {
@@ -20,30 +21,12 @@ class DiceRollerPlugin extends Gdn_Plugin {
     public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args) {
         $commandIndex=$Sender->EventArguments['CommandIndex'];
         $commands=[
-            "[roll]1d6[/roll]"=>
-            [0=>"Roll a 6-sided die.",
-                'nl'=>"Gooi een 6 zijdige dobbelsteen."
-                ],
-            "[roll]5d6b3[/roll]"=>
-            [0=>"Roll 5 six sided dice, sum the best 3.",
-                'nl'=>"5 zeszijdige dobbelstenen, tel de beste drie resultaten op."],
-            "[roll]5d10s6[/roll]"=>
-            [0=>"Roll 5d10, every dice with 6 or more is a success.",
-                'nl'=>"5d10, elke dobbelsteen van 6 of hoger telt als een succes."],
-            "[roll]5d10s6f1[/roll]"=>
-            [0=>"5d10, every dice with 6 or more is a success, every dice with 1 or less substracts a success.",
-                'nl'=>"5d10, elke dobbelsteen van 6 of hoger telt als een succes, elke dobbelsteen die een 1 gooit trekt een succes af van het totaal."],
-            "[roll](5*7d6)^2/5+3[/roll]"=>
-            [0=>"Do basic arithmatic with the results of the dice.",
-                'nl'=>"Doe basis wiskunde met de resultaten van de dobbelstenen."]];
+            "[roll]1d6[/roll]"=>t("Roll a 6-sided die."),
+            "[roll]5d6b3[/roll]"=>t("Roll 5 six sided dice, sum the best 3."),
+            "[roll]5d10s6[/roll]"=>t("Roll 5d10, every dice with 6 or more is a success."),
+            "[roll]5d10s6f1[/roll]"=>t("5d10, every dice with 6 or more is a success, every dice with 1 or less substracts a success."),
+            "[roll](5*7d6)^2/5+3[/roll]"=>t("Do basic arithmatic with the results of the dice.")];
             $commandIndex->addCommands($commands,$this);
-    }
-
-    public function getExplanation() {
-        return "A plugin to roll dice. New results are coloured green, if rolls are edited out of the post a red warning appears.";
-    }
-    public function getExplanation_nl() {
-        return "Een plugin om dobbelstenen te rollen. Alle groene dobbelsteen worpen zijn nieuw, als een dobbelsteen worp ontbreekt komt er een rode error message onderin.";
     }
 
     public function PluginCommandParserPlugin_BeforeSaveParserSetup_Handler($Sender, $Args) {

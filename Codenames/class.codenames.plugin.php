@@ -5,36 +5,25 @@ if (!defined('APPLICATION')) {
 }
 
 $PluginInfo['Codenames'] = array(
-    'Name' => 'Codenames',
-    'Description' => 'Implements the Codenames game for a forum.',
-    'Version' => '1.0',
     'Author' => "Tom Sassen",
     'AuthorEmail' => 'tom.sassen@hotmail.com',
+    'Description' => 'Implements the Codenames game for a forum.',
+    'HasLocale'=>true,
     'MobileFriendly' => TRUE,
+    'Name' => 'Codenames',
     'RequiredApplications' => array('Vanilla' => '2.1'),
-    'RequiredPlugins' => array('PluginCommandParser' => '1.0', 'Dictionary' => '1.0')
+    'RequiredPlugins' => array('PluginCommandParser' => '1.0', 'Dictionary' => '1.0'),
+    'Version' => '1.0'
 );
 
 class CodenamesPlugin extends Gdn_Plugin {
     public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args) {
         $commandIndex=$Sender->EventArguments['CommandIndex'];
         $commands=[
-            "[newcngame]X[/newcngame]"=>
-            [0=>"Start a game with a grid of X by X cards.",
-                'nl'=>"Start een spel met X bij X kaarten."
-                ],
-            "[cnhint]X,Y[/cnhint]"=>
-            [0=>"Give X as hint as spymaster, and let your teammates guess Y+1 times. If Y = 0 or Y > 100, Y = 100.",
-                'nl'=>"Geef X als hint as meesterspion, en laat je team Y+1 keer gokken. Als Y = 0 of Y > 100, Y = 100."]
+            "[newcngame]X[/newcngame]"=>t("Start a game with a grid of X by X cards."),
+            "[cnhint]X,Y[/cnhint]"=>t("Give X as hint as spymaster, and let your teammates guess Y+1 times. If Y = 0 or Y > 100, Y = 100.")
             ];
             $commandIndex->addCommands($commands,$this);
-    }
-
-    public function getExplanation() {
-        return "A plugin to play Codenames.";
-    }
-    public function getExplanation_nl() {
-        return "Een plugin om codenames mee te spelen.";
     }
     public function __construct() {
         parent::__construct();

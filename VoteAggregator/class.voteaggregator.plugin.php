@@ -11,6 +11,7 @@ $PluginInfo['VoteAggregator'] = array(
     'Author' => "Tom Sassen",
     'AuthorEmail' => 'tom.sassen@hotmail.com',
     'MobileFriendly' => TRUE,
+    'HasLocale'=>true,
     'RequiredApplications' => array('Vanilla' => '2.1'),
     'RequiredPlugins' => array('PluginCommandParser' => '1.0'),
     'RegisterPermissions' => ['Plugins.VoteAggregator.CreatePoll' => 'Garden.Moderation.Manage', 'Plugins.VoteAggregator.ClosePoll' => 'Garden.Moderation.Manage', 'Plugins.VoteAggregator.Vote' => 1]
@@ -28,35 +29,13 @@ class VoteAggregatorPlugin extends Gdn_Plugin {
     public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args) {
         $commandIndex=$Sender->EventArguments['CommandIndex'];
         $commands=[
-            "[vastartpoll]X[/vastartpoll]"=>
-            [0=>"Start a basic poll with title X. For example: Lynch voting round/Mayor voting round.",
-                'nl'=>"Start een basis poll met titel X. Bijvoorbeeld: Lynch stemronde/Burgemeester stemronde."
-                ],
-            "[vastartpoll=hidden]X[/vastartpoll]"=>
-            [0=>"Start a poll. Never show what people have voted what.",
-                'nl'=>"Start een poll. Laat niet zien wie wat gestemd heeft."],
-            "[vastartpoll=reveal]X[/vastartpoll]"=>
-            [0=>"Start a poll. Show after poll has closed what people voted.",
-                'nl'=>"Start een poll. Laat zien wie wat gestemd heeft nadat de poll gesloten is"],
-            "[vavote]Option[/vavote]"=>
-            [0=>"Vote for option X. Overwrites earlier votes.",
-                'nl'=>"Stem voor optie X. Overschrijft eerdere stemmen."],
-            "[vaclosepoll]"=>
-            [0=>"Close active poll/quoted poll.",
-                'nl'=>"Sluit de actieve/gequote poll."],
-            "[vacloseall]"=>
-            [0=>"Close all active polls in this discussion.",
-                'nl'=>"Sluit alle actieve polls in deze discussie."]];
+            "[vastartpoll]X[/vastartpoll]"=>t("Start a basic poll with title X. For example: Lynch voting round/Mayor voting round."),
+            "[vastartpoll=hidden]X[/vastartpoll]"=>t("Start a poll. Never show what people have voted what."),
+            "[vastartpoll=reveal]X[/vastartpoll]"=>t("Start a poll. Show after poll has closed what people voted."),
+            "[vavote]Option[/vavote]"=>t("Vote for option X. Overwrites earlier votes."),
+            "[vaclosepoll]"=>t("Close active poll/quoted poll."),
+            "[vacloseall]"=>t("Close all active polls in this discussion.")];
             $commandIndex->addCommands($commands,$this);
-    }
-    public function getExplanation() {
-        return "A polling plugin. All the votes are gathered and sorted in descending order automatically.<br/>
-If you don't quote a specific post in your poll, the last poll is chosen as default.";
-    }
-
-    public function getExplanation_nl() {
-        return "Een poll plugin. Resultaten worden verzameld en automatisch gesorteerd op wie op dat moment de meeste stemmen heeft,<br/>
-met een overzicht wie allemaal op die optie heeft gestemd. Als er geen poll gequote wordt, wordt de laatste poll als default genomen.";
     }
 
     public function PluginCommandParserPlugin_BeforeSaveParserSetup_Handler($Sender, $Args) {

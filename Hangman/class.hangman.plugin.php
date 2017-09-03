@@ -5,34 +5,24 @@ if (!defined('APPLICATION')) {
 }
 
 $PluginInfo['Hangman'] = array(
-    'Name' => 'Hangman',
-    'Description' => 'Implements a hangman game.',
-    'Version' => '1.0',
     'Author' => "Tom Sassen",
     'AuthorEmail' => 'tom.sassen@hotmail.com',
+    'Description' => 'Implements a hangman game.',
+    'HasLocale'=>true,
     'MobileFriendly' => TRUE,
+    'Name' => 'Hangman',
     'RequiredApplications' => array('Vanilla' => '2.1'),
-    'RequiredPlugins' => array('PluginCommandParser' => '1.0')
+    'RequiredPlugins' => array('PluginCommandParser' => '1.0'),
+    'Version' => '1.0'
 );
 
 class HangmanPlugin extends Gdn_Plugin {
-    
-    public function getExplanation() {
-        return "A plugin to play hangman";}
-    public function getExplanation_nl() {
-        return "Een plugin om galgje mee te spelen.";}
 public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args) {
         $commandIndex=$Sender->EventArguments['CommandIndex'];
         $commands=[
-            "[hstart]X[/hstart]"=>
-            [0=>"Start a new game with the word X.",
-                'nl'=>"Start een nieuw spel met X als woord."
-                ],"[hg]e[/hg]"=>
-            [0=>"Guess this letter.",
-                'nl'=>"Gok deze letter."],
-            "[hrandom]"=>
-            [0=>"Start a new game with a random word. Dictionary plugin has to be enabled!",
-                'nl'=>"Start een nieuw spel met een random woord. Dictionary plugin moet aan staan hiervoor!"]];
+            "[hstart]X[/hstart]"=>t("Start a new game with the word X."),
+            "[hg]e[/hg]"=>t("Guess the letter 'e'."),
+            "[hrandom]"=>t("Start a new game with a random word. Dictionary plugin has to be enabled!")];
             $commandIndex->addCommands($commands,$this);
     }
     private $currentWordID;

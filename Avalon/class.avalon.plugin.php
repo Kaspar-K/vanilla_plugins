@@ -4,53 +4,30 @@ if (!defined('APPLICATION')) {
 }
 
 $PluginInfo['Avalon'] = array(
-    'Name' => 'Avalon',
-    'Description' => 'Lets you play avalon. Get instructions on proper usage by posting a post containing this command: [pluginexplanation]Avalon[/pluginexplanation]',
-    'Version' => '1.0',
     'Author' => "Tom Sassen",
     'AuthorEmail' => 'tom.sassen@hotmail.com',
+    'Description' => 'Lets you play avalon. Get instructions on proper usage by posting a post containing this command: [pluginexplanation]Avalon[/pluginexplanation]',
     'MobileFriendly' => TRUE,
+    'Name' => 'Avalon',
     'RequiredApplications' => array('Vanilla' => '2.1'),
     'RequiredPlugins' => array('VoteAggregator' => '1.0'),
-    'RegisterPermissions' => ['Plugins.Avalon.RunGame' => 'Garden.Moderation.Manage']);
+    'RegisterPermissions' => ['Plugins.Avalon.RunGame' => 'Garden.Moderation.Manage'],
+    'Version' => '1.0');
 
 class AvalonPlugin extends Gdn_Plugin {
     public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args) {
         $commandIndex=$Sender->EventArguments['CommandIndex'];
         $commands=[
-            "[avstartgame]User1,User2,User3,User4,User5[/avstartgame]"=>
-            [0=>"Start a game with Users 1 t/m 5.",
-                'nl'=>"Start een spel met Users 1 t/m 5."
-                ],"[avendgame]"=>
-            [0=>"End a game and show everyone who had what role.",
-                'nl'=>"Eindig een spel en laat zien welke rollen iedereen was."],
-            "[avmission]W/F[/avmission]"=>
-            [0=>"Log the result of a mission. (W)in or (F)ail.",
-                'nl'=>"Geef het resultaat van een missie door. (W)in of (F)aal."],
-            "[vastartpoll=reveal]".T("Avalon voting round")."[/vastartpoll]"=>
-            [0=>"Start a poll to accept or reject a team.",
-                'nl'=>"Open een poll om een team goed- of af- te keuren."],
-            "[vastartpoll=hidden]".T("Avalon mission round")."[/vastartpoll]"=>
-            [0=>"Add a poll to determine the success of the mission.",
-                'nl'=>"Start een poll om een missie te laten slagen of niet."]];
+            "[avstartgame]User1,User2,User3,User4,User5[/avstartgame]"=>t("Start a game with Users 1 t/m 5."),
+            "[avendgame]"=>t("End a game and show everyone who had what role."),
+            "[avmission]W/F[/avmission]"=>t("Log the result of a mission. (W)in or (F)ail."),
+            "[vastartpoll=reveal]".T("Avalon voting round")."[/vastartpoll]"=>t("Start a poll to accept or reject a team."),
+            "[vastartpoll=hidden]".T("Avalon mission round")."[/vastartpoll]"=>t("Add a poll to determine the success of the mission.")];
             $commandIndex->addCommands($commands,$this);
         if (gdn::pluginManager()->isEnabled("VoteAggregator")) {
             (new VoteAggregatorPlugin())->PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender,$Args);
         }
     }
-    public function getExplanation() {
-        if (gdn::pluginManager()->isEnabled("VoteAggregator")) {
-            return "With this plugin you can play Avalon.";
-        }
-        return "Please enable VoteAggregator to use this plugin.";
-    }
-    public function getExplanation_nl() {
-        if (gdn::pluginManager()->isEnabled("VoteAggregator")) {
-            return "Met deze plugin kun je Avalon spelen.";
-        }
-        return "Please enable VoteAggregator to use this plugin.";
-    }
-
     const Goodguy = 1;
     const Merlijn = 2;
     const Percival = 3;
@@ -64,6 +41,10 @@ class AvalonPlugin extends Gdn_Plugin {
     function __construct() {
         $this->currentGameID = false;
         $this->currentPost = false;
+        if(!t('AvalonPlugin.Explanation',""))
+                {
+            require_once __DIR__.'/locale/en.php';
+                }
     }
 
     public function canAlwaysEdit() {
@@ -228,8 +209,8 @@ class AvalonPlugin extends Gdn_Plugin {
                 $badguys_text.=", " . $validated_users[$name]['Name'];
             }
         }
-        $perc_vision_text = rand(0, 1) ? $validated_users[$users[0]]['Name'] . " and " . $validated_users[$users[2]]['Name'] : $validated_users[$users[2]]['Name'] . " and " . $validated_users[$users[0]]['Name'];
-        $game_id = gdn::sql()->insert("AvGames", ['ParentID' => $this->currentPost->ParentID, 'ParentType' => $this->currentPost->ParentType, 'NumPlayers' => $numplayers, 'MerlinVision' => substr($merlin_vision_text, 2) . (count($badguys) > 2 ? " are traitors" : " is a traitor") . " to the Round Table.", 'PercivalVision' => $perc_vision_text . " are schooled in the art of Witchcraft.", 'BadGuys' => substr($badguys_text, 2) . " are traitors to the round table."]);
+        $perc_vision_text = rand(0, 1) ? $validated_users[$users[0]]['Name'] . t(" and ") . $validated_users[$users[2]]['Name'] : $validated_users[$users[2]]['Name'] . t(" and ") . $validated_users[$users[0]]['Name'];
+        $game_id = gdn::sql()->insert("AvGames", ['ParentID' => $this->currentPost->ParentID, 'ParentType' => $this->currentPost->ParentType, 'NumPlayers' => $numplayers, 'MerlinVision' => substr($merlin_vision_text, 2) . t((count($badguys) > 2 ? " are traitors" : " is a traitor") . " to the Round Table."), 'PercivalVision' => $perc_vision_text . t(" are schooled in the art of Witchcraft."), 'BadGuys' => substr($badguys_text, 2) . t(" are traitors to the round table.")]);
         foreach ($validated_users as $name => $user) {
             gdn::sql()->insert("AvPlayers", ['GameID' => $game_id, 'UserID' => $user['UserID'], 'Role' => $user['Role']]);
         }
@@ -295,13 +276,13 @@ class AvalonPlugin extends Gdn_Plugin {
         if (!$game_row->Done) {
             $role_row = gdn::sql()->select('Role')->from("AvPlayers")->where(["UserID" => gdn::session()->UserID, 'GameID' => $id])->get()->firstRow();
             if ($role_row) {
-                $html .= "<p>You are " . $this->getRole($role_row->Role) . ". ";
+                $html .= "<p>".t("You are") . $this->getRole($role_row->Role) . ". ";
                 if ($role_row->Role === self::Merlijn) {
-                    $html.="You have received a vision that " . $game_row->MerlinVision;
+                    $html.=t("You have received a vision that ") . $game_row->MerlinVision;
                 } else if ($role_row->Role === self::Percival) {
-                    $html.="You have received a vision that " . $game_row->PercivalVision;
+                    $html.=t("You have received a vision that ") . $game_row->PercivalVision;
                 } else if ($role_row->Role === self::Oberon) {
-                    $html.="Down with Avalon!";
+                    $html.=t("Down with Avalon!");
                 } else if ($role_row->Role < 0) {
                     if ($role_row->Role === self::Mordred) {
                         $html.=$game_row->BadGuys;

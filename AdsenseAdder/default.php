@@ -7,6 +7,7 @@ $PluginInfo['AdsenseAdder'] = array(
    'Author' => 'ithcy',
    'AuthorEmail' => 'vanilla@rel2.com',
    'AuthorUrl' => 'http://rel2.com',
+    'License' => 'GPL v2',
    'SettingsUrl' => '/dashboard/settings/adsense',
    'SettingsPermission' => 'Garden.Settings.Manage',
     'RequiredApplications' => array('Vanilla' => '>=2.3')

@@ -5,7 +5,8 @@ if (!defined('APPLICATION')) {
 }
 $PluginInfo['AdvancedBBCodeEditor'] = array(
     'Name' => 'AdvancedBBCodeEditor',
-    'Description' => 'Implements more options for the advanced editor. Get instructions on proper usage by posting a post containing this command: [pluginexplanation]AdvancedBBCodeEditor[/pluginexplanation]',
+		'HasLocale' => TRUE,
+    'Description' => 'Implements more options for the advanced editor. If you have the PluginCommandParser plugin, instructions on proper usage can be retrieved by posting a post containing this command: [pluginexplanation]AdvancedBBCodeEditor[/pluginexplanation]',
     'Version' => '1.0',
     'Author' => "Tom Sassen",
     'AuthorEmail' => 'tom.sassen@hotmail.com',
@@ -17,56 +18,24 @@ $PluginInfo['AdvancedBBCodeEditor'] = array(
 class AdvancedBBCodeEditor extends Gdn_Plugin {
 
     function __construct() {
-        
+        if(!t('AdvancedBBCodeEditor.Explanation',""))
+                {
+            require_once __DIR__.'/locale/en.php';
+                }
     }
-
-    public function getExplanation() {
-        return "A plugin to add BBCode menu options & hotkeys.<br/>"
-                . "\nThere are a few different hotkeys:";
-    }
-    public function getExplanation_nl() {
-        return "Een plugin om extra BBCode opties snel toe te kunnen voegen.<br/>"
-                . "\nEr zijn nu verschillende hotkeys:";
-    }
+    
 public function PluginCommandParserPlugin_AvailableCommandsSetup_Handler($Sender, $Args) {
         $commandIndex=$Sender->EventArguments['CommandIndex'];
         $commands=[
-            "ctrl-shift-1"=>
-            [0=>"Add very small text.",
-                'nl'=>"Voeg erg kleine tekst toe."
-                ],
-            "ctrl-shift-2"=>
-            [0=>"Add small text.",
-                'nl'=>"Voeg kleine tekst toe."
-                ],
-            "ctrl-shift-4"=>
-            [0=>"Add large text.",
-                'nl'=>"Voeg grote tekst toe."
-                ],
-            "ctrl-shift-5"=>
-            [0=>"Add very large text.",
-                'nl'=>"Voeg erg grote tekst toe."
-                ],
-            "ctrl-shift-b"=>
-            [0=>"Add (b)lue text.",
-                'nl'=>"Voeg (b)lauwe tekst toe."
-                ],
-            "ctrl-shift-r"=>
-            [0=>"Add (r)ed text.",
-                'nl'=>"Voeg (r)ode tekst toe."
-                ],
-            "ctrl-shift-g"=>
-            [0=>"Add (g)reen text.",
-                'nl'=>"Voeg (g)roene tekst toe."
-                ],
-            "ctrl-shift-y"=>
-            [0=>"Add (y)ellow text.",
-                'nl'=>"Voeg gele (yellow) tekst toe."
-                ],
-            "ctrl-shift-o"=>
-            [0=>"Add (o)range text.",
-                'nl'=>"Voeg (o)ranje tekst toe."
-                ]];
+            "ctrl-shift-1"=>t("Add very small text."),
+            "ctrl-shift-2"=>t("Add small text."),
+            "ctrl-shift-4"=>t("Add large text."),
+            "ctrl-shift-5"=>t("Add very large text."),
+            "ctrl-shift-b"=>t("Add (b)lue text."),
+            "ctrl-shift-r"=>t("Add (r)ed text."),
+            "ctrl-shift-g"=>t("Add (g)reen text."),
+            "ctrl-shift-y"=>t("Add (y)ellow text."),
+            "ctrl-shift-o"=>t("Add (o)range text.")];
             $commandIndex->addCommands($commands,$this);
     }
     public function editor_active()

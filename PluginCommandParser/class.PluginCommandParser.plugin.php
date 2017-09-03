@@ -2,8 +2,7 @@
 if (!defined('APPLICATION')) {
     exit();
 }
-if(!defined("BBCODE_CHECK"))
-{
+if (!defined("BBCODE_CHECK")) {
     define("BBCODE_CHECK", 1);
     define("BBCODE_MODE_CALLBACK", 1);
     define("BBCODE_PROHIBIT", -1);
@@ -15,6 +14,7 @@ $PluginInfo['PluginCommandParser'] = array(
     'Version' => '1.0',
     'Author' => "Tom Sassen",
     'AuthorEmail' => 'tom.sassen@hotmail.com',
+    'HasLocale' => true,
     'MobileFriendly' => TRUE,
     'RequiredApplications' => array('Vanilla' => '2.1'),
     'SettingsUrl' => '/settings/plugincommandparser',
@@ -22,26 +22,26 @@ $PluginInfo['PluginCommandParser'] = array(
 );
 
 class PluginCommandParserPlugin extends Gdn_Plugin {
-    
-    private $css="";
-    private $js="";
-    private $javascript="";
-    
-    public function addCSS($css)
-            {
-        $this->css.="\n".preg_replace('/\s+/', ' ', $css);
-            }
-     public function addJS($js)
-             {
-         $this->js.="\n$js";
-             }
-/**
- * Makes a list of all plugins that are currently enabled and use this command interface
- */
+
+    private $css = "";
+    private $js = "";
+    private $javascript = "";
+
+    public function addCSS($css) {
+        $this->css.="\n" . preg_replace('/\s+/', ' ', $css);
+    }
+
+    public function addJS($js) {
+        $this->js.="\n$js";
+    }
+
+    /**
+     * Makes a list of all plugins that are currently enabled and use this command interface
+     */
     public function getExplanation() {
-        $html = "This is a list of the available commands on this forum. Note: end tags can be abbreviated to '[/]'.";
+        $html = t("This is a list of the available commands on this forum. Note: end tags can be abbreviated to '[/]'.");
         if (checkPermission("Plugins.PluginCommandParser.ShowExplanation")) {
-            $html.="<br/>Get more specific information about a plugin with [explanation]PluginName[/explanation]";
+            $html.="<br/>" . t("Get more specific information about a plugin with [explanation]PluginName[/explanation]");
         }
         $commandIndex = $this->getAvailableCommands();
         $sortedNames = get_object_vars($commandIndex);
@@ -52,15 +52,16 @@ class PluginCommandParserPlugin extends Gdn_Plugin {
         }
         return $html;
     }
+
 //This parser is used before posts are saved to the database.
     private $beforeSaveToDBParser;
 //This parser is used before posts are displayed
     private $beforeDisplayParser;
-    private $shouldRender=false;
+    private $shouldRender = false;
 
     /**
- * Includes the Parser, CurrentPost and CommandIndex class
- */
+     * Includes the Parser, CurrentPost and CommandIndex class
+     */
     function __construct() {
         parent::__construct();
         require_once __DIR__ . '/StrippedNBBCParser.php';
@@ -74,10 +75,10 @@ class PluginCommandParserPlugin extends Gdn_Plugin {
     }
 
     /**
- * Creates a settings page.
+     * Creates a settings page.
      * You can set Plugins.PluginCommandParser.EnabledInConversation to enable custom commands in private messages
      * You can set Plugins.PluginCommandParser.ReloadOnNewMessage to make the page refresh after each private message in case some plugins interfere badly with this plugin
- */
+     */
     public function SettingsController_PluginCommandParser_Create($Sender) {
         //This function creates a setting page
         $Sender->Permission('Garden.Settings.Manage');
@@ -126,6 +127,7 @@ class PluginCommandParserPlugin extends Gdn_Plugin {
         $Body = $this->beforeSaveToDBParser->parse($currentPost->Body, $currentPost);
         return $Body;
     }
+
     function format($Mixed) {
         global $currentPM;
         if (isset($currentPM->OldFormat)) {
@@ -144,11 +146,9 @@ class PluginCommandParserPlugin extends Gdn_Plugin {
             $this->beforeDisplayParser->addRule('pluginexplanation', ['method' => Array($this, 'lookupExplanation')]);
             $this->EventArguments['Parser'] = $this->beforeDisplayParser;
             $this->FireEvent('BeforeDisplaySetup');
-            if($this->shouldRender)
-                {
-                echo "<style>".$this->css."</style><script>".$this->js."\n</script>";
-                
-                }
+            if ($this->shouldRender) {
+                echo "<style>" . $this->css . "</style><script>" . $this->js . "\n</script>";
+            }
         }
         $this->EventArguments['Parser'] = $this->beforeDisplayParser;
         $this->FireEvent('BeforeDisplayParse');
@@ -168,43 +168,45 @@ class PluginCommandParserPlugin extends Gdn_Plugin {
         $enabledplugins = array_change_key_case(Gdn::pluginManager()->enabledPlugins(), CASE_LOWER);
         if (arrayHasValue($enabledplugins, strtolower($content))) {
             $classname = false;
-            $locale = strtolower(c("Garden.Locale", 'en'));
             if (class_exists($content)) {
                 $classname = $content;
             } else if (class_exists($content . "Plugin")) {
                 $classname = $content . "Plugin";
             }
-            if (method_exists($classname, "getExplanation_$locale")) {
-                $method = "getExplanation_$locale";
-            } else if (method_exists($classname, "getExplanation")) {
-                $method = "getExplanation";
-            } else if ($info = gdn::pluginManager()->getPluginInfo($content)) {
-                return "<p class='ExpPluginName'>" . $info['Name'] . "</p>" . $info['Description'];
-            } else {
-                return false;
+            $explanation = t(strtolower($classname . ".Explanation"), "");
+            if ($classname === $this->ClassName && !$explanation) {
+                $explanation = $this->getExplanation();
             }
-            $plugin = new $classname();
-            $pluginName = $plugin->getPluginName();
-            $html = "<p class='ExpPluginName'>" . $pluginName . "</p>";
-            $commands = $this->getAvailableCommands($plugin);
-            $html.= $plugin->$method();
-            $html.=$this->getCommandHTML($commands->$pluginName, $pluginName, $locale);
-            unset($commands->$pluginName);
-            $sortedNames = get_object_vars($commands);
-            if (count($sortedNames) > 0) {
-                $html.="<br/><p class='ExpOtherStart'>" . $pluginName . " also uses the following commands of other plugins:</p>";
-                ksort($sortedNames);
-                foreach ($sortedNames as $name => $otherplugin) {
-                    $html.="<p class='ExpPluginName'>" . $name . "</p>";
-                    $html.="" . $this->getCommandHTML($otherplugin, $name, $locale);
+            if ($explanation) {
+                $plugin = new $classname();
+                $pluginName = $plugin->getPluginName();
+                $html = "<p class='ExpPluginName'>" . $pluginName . "</p>";
+                $commands = $this->getAvailableCommands($plugin);
+                $html.= $explanation;
+                if (isset($commands->$pluginName)) {
+                    $html.=$this->getCommandHTML($commands->$pluginName, $pluginName);
                 }
+                unset($commands->$pluginName);
+                $sortedNames = get_object_vars($commands);
+                if (count($sortedNames) > 0) {
+                    $html.="<br/><p class='ExpOtherStart'>" . $pluginName . t(" also uses the following commands of other plugins:") . "</p>";
+                    ksort($sortedNames);
+                    foreach ($sortedNames as $name => $otherplugin) {
+                        $html.="<p class='ExpPluginName'>" . $name . "</p>";
+                        $html.="" . $this->getCommandHTML($otherplugin, $name);
+                    }
+                }
+                return $this->ExplanationHTML[$content] = $html;
+            } else if ($info = gdn::pluginManager()->getPluginInfo($content)) {
+                return $this->ExplanationHTML[$content] = "<p class='ExpPluginName'>" . $info['Name'] . "</p>" . $info['Description'];
+            } else {
+                return $this->ExplanationHTML[$content] = false;
             }
-            return $this->ExplanationHTML[$content] = $html;
         }
-        return false;
+        return $this->ExplanationHTML[$content] = false;
     }
 
-    public function getCommandHTML($commands, $name, $locale) {
+    public function getCommandHTML($commands, $name) {
         if (empty($this->commandHTML)) {
             $this->commandHTML = [];
         }
@@ -215,7 +217,7 @@ class PluginCommandParserPlugin extends Gdn_Plugin {
         $hasCommands = false;
         foreach ($commands as $title => $explanation) {
             $hasCommands = true;
-            $html.=str_replace("\n", "<br/>", htmlentities("\n$title: " . (isset($explanation[$locale]) ? $explanation[$locale] : $explanation[0]), ENT_QUOTES));
+            $html.=str_replace("\n", "<br/>", htmlentities("\n$title: " . $explanation, ENT_QUOTES));
         }
         return $this->commandHTML[$name] = ($hasCommands ? $html : "" );
     }
@@ -231,10 +233,9 @@ class PluginCommandParserPlugin extends Gdn_Plugin {
         }
         return $commandIndex;
     }
-    
-    public function initializeCSSAndJS()
-            {
-        $this->shouldRender=true;
+
+    public function initializeCSSAndJS() {
+        $this->shouldRender = true;
         $this->addCSS("
             .ExpOtherStart
             {
@@ -249,8 +250,7 @@ class PluginCommandParserPlugin extends Gdn_Plugin {
             {
                 font-weight:bold;
             }");
-        
-            }
+    }
 
     public function DiscussionController_Render_Before($Sender) {
         $this->initializeCSSAndJS();
@@ -275,21 +275,18 @@ class PluginCommandParserPlugin extends Gdn_Plugin {
         if (c('Plugins.PluginCommandParser.EnabledInConversation', true)) {
             global $currentPM;
             $currentPM = $Sender->EventArguments['Message'];
-            if ($currentPM && (!isset($currentPM->OldFormat)))
-            { 
-                if(c('Plugins.PluginCommandParser.ReloadOnNewMessage', false)) {
-                ?><script>location.reload();</script><?php
+            if ($currentPM && (!isset($currentPM->OldFormat))) {
+                if (c('Plugins.PluginCommandParser.ReloadOnNewMessage', false)) {
+                    ?><script>location.reload();</script><?php
+                } else {
+                    $currentPM->OldFormat = $currentPM->Format;
+                    echo $this->format($currentPM->Body);
+                    $currentPM->Body = '';
+                }
+                $currentPM = false;
             }
-            else{
-                $currentPM->OldFormat=$currentPM->Format;
-                echo $this->format($currentPM->Body);
-                $currentPM->Body='';
-            }
-                $currentPM=false;
         }
     }
-    
-            }
 
     public function DiscussionController_AfterCommentFormat_handler($Sender) {
         //echo serialize($Sender->EventArguments);
@@ -325,10 +322,9 @@ class PluginCommandParserPlugin extends Gdn_Plugin {
         $currentPost = new CurrentPost($OwnID, $ParentID, $Format, $Body, $Type);
         $Sender->EventArguments['FormPostValues']['Body'] = $this->parsePostBeforeSave($currentPost);
         if (strlen($Sender->EventArguments['FormPostValues']['Body']) < 1) {
-            if(c('Plugins.PluginCommandParser.DeleteEmptyPosts',false))
-                    {
+            if (c('Plugins.PluginCommandParser.DeleteEmptyPosts', false)) {
                 (new DiscussionModel())->delete($Sender->EventArguments['DiscussionID']);
-                    }
+            }
             $Sender->EventArguments['FormPostValues']['Body'] = "[empty post]";
         }
         Gdn::sql()->update("Discussion")->set("Body", $Sender->EventArguments['FormPostValues']['Body'])->where("DiscussionID", $Sender->EventArguments['DiscussionID'])->put();
@@ -359,6 +355,5 @@ class PluginCommandParserPlugin extends Gdn_Plugin {
             (new CommentModel())->delete($Sender->EventArguments['CommentID']);
         }
     }
-
 
 }
