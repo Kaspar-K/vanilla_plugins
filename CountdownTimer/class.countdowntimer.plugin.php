@@ -8,7 +8,7 @@ $PluginInfo['CountdownTimer'] = array(
     'Author' => "Caylus",
     'AuthorUrl' => 'https://open.vanillaforums.com/profile/Caylus',
     'Description' => 'Add a countdown to a specific time and date to a comment. Based on a plugin written by Matt Sephton.',
-    'Version' => '1.3.0',
+    'Version' => '1.3.1',
     'License' => 'GPL v2',
     'Name' => 'CountdownTimer',
     'RequiredApplications' => array('Vanilla' => '>=2.2'),

@@ -195,7 +195,7 @@ class MastermindPlugin extends Gdn_Plugin {
             return true;
         }
         if (is_numeric($content)) {
-            $result = Gdn::sql()->select("CodeGuessed,PostID,NumRed,NumWhite")->from("MMGuesses")->where("GuessID", $content)->get()->firstRow();
+            $result = Gdn::sql()->select("CodeGuessed,NumRed,NumWhite")->from("MMGuesses")->where("GuessID", $content)->get()->firstRow();
             if ($result) {
                 $guesstext = "<div class='MMGuess'>";
                 $pins = explode(" ", $result->CodeGuessed);
@@ -203,9 +203,9 @@ class MastermindPlugin extends Gdn_Plugin {
                     $guesstext.="<div class='MMPin' style='background-color: " . Code::getColorNameFromNumber($pins[$i]) . ";'></div>";
                 }
                 if (count($pins) == $result->NumWhite) {
-                    $guesstext.="<p>Congratulations! You've guessed the code!</p>";
+                    $guesstext.="<p>".t("Congratulations! You've guessed the code!")."</p>";
                 } else {
-                    $guesstext.="<p>, " . $result->NumWhite . " pin(s) correct, " . $result->NumRed . " pin(s) wrong positioned.</p>";
+                    $guesstext.="<p>, " . $result->NumWhite . t(" pin(s) correct, ") . $result->NumRed . t(" pin(s) wrong positioned.")."</p>";
                 }return $guesstext . "</div>";
             }
         }
