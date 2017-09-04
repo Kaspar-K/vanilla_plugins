@@ -54,7 +54,11 @@ class HangmanPlugin extends Gdn_Plugin {
             return true;
         }
         if (Gdn::pluginManager()->isEnabled("Dictionary")) {
-            $randomWord = (new DictionaryPlugin())->getRandomWord();
+            $dictionaryPlugin=new DictionaryPlugin();
+            $randomWord = "";
+            for ($i = 0; $i < 20 && strlen($randomWord) < c('Plugin.Hangman.MinLength', 5); $i++) {
+                $randomWord = $dictionaryPlugin->getRandomWord();
+            }
             return $this->saveHangmanWord($bbcode, $action, $name, $default, $params, $randomWord);
         }
         return "<em>For this function the Dictionary plugin has to be enabled.</em>";
@@ -123,18 +127,18 @@ class HangmanPlugin extends Gdn_Plugin {
             $word = gdn::sql()->select("RevealedWord,GuessesWrong,Won")->from("HMWords")->where("WordID", $content)->get()->firstRow();
             if ($word) {
                 $stage = $word->Won > 0 ? -1 : $word->GuessesWrong;
-                $html = "<div><p class='HangmanWord HMStage$stage'>$word->RevealedWord</p><br><img src='" . $this->GetResource("images/hangman$stage.png", FALSE, FALSE) . "'></div>";
+                $html = "<div><p class='HangmanWord HMStage$stage'>$word->RevealedWord</p><br><img src='" . url($this->getPluginFolder(false) . "/images/hangman$stage.png") . "'></div>";
                 $allGuesses = gdn::sql()->select("Letter")->from("HMGuesses")->orderBy("Letter")->where("WordID", $content)->get();
                 $guessString = "";
                 while ($row = $allGuesses->nextRow()) {
                     $guessString.=',' . $row->Letter;
                 }
-                $html.="<p class='HMGuesses'>Letters guessed: " . substr($guessString, 1) . ".</p>";
+                $html.="<p class='HMGuesses'>" . T("Letters guessed: ") . substr($guessString, 1) . ".</p>";
                 if ($word->Won < 0) {
-                    $html.="<p>The executioner won :(</p>";
+                    $html.="<p>" . T("The executioner won :(") . "</p>";
                 }
                 if ($word->Won > 0) {
-                    $html.="<p>The convict lives to see another day :D</p>";
+                    $html.="<p>" . t("The convict lives to see another day :D") . "</p>";
                 }
                 $this->wordsRendered[$content] = $html;
                 return $html;
@@ -153,8 +157,8 @@ class HangmanPlugin extends Gdn_Plugin {
             }
             $guess = gdn::sql()->select("Letter,UserID,LettersFound")->from("HMGuesses")->where("GuessID", $content)->get()->firstRow();
             if ($guess) {
-                $name = gdn::session()->UserID == $guess->UserID ? "You" : htmlspecialchars((new UserModel())->getID($guess->UserID)->Name);
-                $html = "<p class='HMLetterGuess'>$name guessed: <span class='HMLetter'>$guess->Letter</span>, the word contained this letter <strong><em>" . $guess->LettersFound . "</em></strong> time(s).</p>";
+                $name = gdn::session()->UserID == $guess->UserID ? t("You") : htmlspecialchars((new UserModel())->getID($guess->UserID)->Name);
+                $html = "<p class='HMLetterGuess'>$name" . T(" guessed: ") . "<span class='HMLetter'>$guess->Letter</span>" . t(", the word contained this letter ") . "<strong><em>" . $guess->LettersFound . "</em></strong>" . t(" time(s)") . ".</p>";
                 $this->guessRendered[$content] = $html;
                 return $html;
             }
@@ -226,7 +230,7 @@ class HangmanPlugin extends Gdn_Plugin {
                 }
                 Gdn::sql()->update("HMWords")->set(['GuessesWrong' => $guessesWrong, 'RevealedWord' => $newGuess, 'Won' => $won])->where("WordID", $this->currentWordID)->put();
                 $guessID = Gdn::sql()->insert("HMGuesses", ['UserID' => $currentUser, 'WordID' => $this->currentWordID, 'Letter' => $letter, 'LettersFound' => $lettersFound]);
-                return "[hmguess]$guessID" . "[/hmguess]";
+                return "[hmguess]$guessID" . "[/hmguess]" . ($won !==0 ? t(" Game finished!") : "");
             }
         }
         return false;

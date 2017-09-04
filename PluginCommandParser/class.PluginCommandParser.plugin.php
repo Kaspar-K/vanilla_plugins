@@ -149,6 +149,7 @@ class PluginCommandParserPlugin extends Gdn_Plugin {
             $this->FireEvent('BeforeDisplaySetup');
             if ($this->shouldRender) {
                 echo "<style>" . $this->css . "</style><script>" . $this->js . "\n</script>";
+                $this->shouldRender=false;
             }
         }
         $this->EventArguments['Parser'] = $this->beforeDisplayParser;

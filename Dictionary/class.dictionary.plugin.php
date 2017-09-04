@@ -32,7 +32,7 @@ class DictionaryPlugin extends Gdn_Plugin {
             $Sender->Title($this->GetPluginKey('Name'));
             $Sender->SetData('Description', $this->GetPluginKey('Description'));
             $this->AddCss();
-            $Sender->AddJsFile($this->GetResource('js/dictionary_functions.js', FALSE, FALSE));
+            $Sender->AddJsFile('dictionary_functions.js', 'plugins/dictionary');
             $Sender->addSideMenu('dashboard/settings');
             $Sender->Render($this->GetView('dictionary_settings.php'));
         }

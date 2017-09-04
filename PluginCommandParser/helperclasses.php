@@ -56,7 +56,7 @@ class CurrentPost {
         }
     }
 
-    public function currentUserIsOwner() {
+    public function currentUserStartedThread() {
         if (isset($this->ownsPost)) {
             return $this->ownsPost;
         }

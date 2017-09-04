@@ -203,7 +203,7 @@ abstract class StrippedNBBCParser {
         $params = explode(' ', $token);
         $param_array = [];
         $param_array['_default'] = '';
-        $this->addUserParamsToArray($param_array, $params);
+        $this->addUserParamsToArray($param_array, $params,$token);
         if (isset($this->tag_rules[$token])) {
             $item = new stdClass();
             $item->token = $token;
@@ -242,7 +242,7 @@ abstract class StrippedNBBCParser {
         return $toParse;
     }
 
-    public function addUserParamsToArray(&$param_array, $params) {
+    public function addUserParamsToArray(&$param_array, $params,&$token) {
         for ($j = 0; $j < count($params); $j++) {
             $param_parts = explode('=', $params[$j]);
             if ($j === 0) {

@@ -42,7 +42,7 @@ class VoteAggregatorPlugin extends Gdn_Plugin {
         $BBCode = $Sender->EventArguments['Parser'];
         $this->currentPost = $Sender->EventArguments['CurrentPost'];
         $this->currentPoll = false;
-        $ownsPost = $this->currentPost->currentUserIsOwner();
+        $ownsPost = $this->currentPost->currentUserStartedThread();
         if ($ownsPost || checkPermission("Plugins.VoteAggregator.Vote")) {
             $BBCode->AddRule("vavote", [
 
@@ -179,7 +179,7 @@ class VoteAggregatorPlugin extends Gdn_Plugin {
             $subject = str_replace(" ", "_", $poll['Subject']);
             $Now = Gdn_Format::toDateTime();
             Gdn::sql()->replace("VAVotes", ['TimePosted' => $Now, 'PollID' => $pollID, 'UserID' => $userID, 'Vote' => $vote], ['PollID' => $pollID, 'UserID' => $userID], true);
-            $html = "[vasavedvote=$subject]" . ($poll['Hidden'] === 0 ? $vote : 'Voted!') . "[/vasavedvote]";
+            $html = "[vasavedvote=$subject]" . ($poll['Hidden'] === 0 ? $vote : t('Voted!')) . "[/vasavedvote]";
             return $html;
         }
         return false;
@@ -197,7 +197,8 @@ class VoteAggregatorPlugin extends Gdn_Plugin {
     public function getPollHTML($pollID) {
         $pollResult = Gdn::sql()->select("PollSubject,Open,Hidden")->from("VAPolls")->where("PollID", $pollID)->get();
         if (($poll = $pollResult->firstRow())) {
-            $pollSubject = ($poll->Open ? "" : "<span class='VAClosed'>[CLOSED]</span>") . htmlspecialchars($poll->PollSubject, ENT_QUOTES);
+            $msg_body_html = "";
+            $pollSubject = ($poll->Open ? "" : "<span class='VAClosed'>[".t("CLOSED")."]</span>") . htmlspecialchars($poll->PollSubject, ENT_QUOTES);
             if ($poll->Hidden === 0 || !$poll->Open) {
                 $votes = Gdn::sql()->select("v.Vote,u.Name")->from("VAVotes v")->join("User u", "v.UserID=u.UserID")->where("v.PollID", $pollID)->get();
                 $voteArray = [];
@@ -207,12 +208,11 @@ class VoteAggregatorPlugin extends Gdn_Plugin {
                     $voteArray[$votekey]['Users'][] = htmlspecialchars($row->Name, ENT_COMPAT | ENT_HTML401 | ENT_QUOTES);
                 }
                 usort($voteArray, [$this, 'sortVotes']);
-                $html = "";
                 foreach ($voteArray as $voteOption) {
-                    $html.="<br/><b>" . $voteOption['Vote'] . "</b>: " . count($voteOption['Users']);
+                    $msg_body_html.="<br/><b>" . $voteOption['Vote'] . "</b>: " . count($voteOption['Users']);
                     foreach ($voteOption['Users'] as $userName) {
                         if ($poll->Hidden === 0 || ($poll->Hidden === 1 && !$poll->Open)) {
-                            $html.=", $userName";
+                            $msg_body_html.=", $userName";
                         }
                     }
                 }
@@ -228,7 +228,7 @@ class VoteAggregatorPlugin extends Gdn_Plugin {
             if ($poll->Hidden === 2) {
                 $class.=" VAHidden";
             }
-            return "<div class='VAPoll'><p class='$class'>$pollSubject</p><div class='VAVoteList'>" . substr($html, 5) . "</div></div>";
+            return "<div class='VAPoll'><p class='$class'>$pollSubject</p><div class='VAVoteList'>" . ($msg_body_html?substr($msg_body_html, 5):"") . "</div></div>";
         }
         return false;
     }

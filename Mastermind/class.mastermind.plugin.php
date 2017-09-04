@@ -206,7 +206,8 @@ class MastermindPlugin extends Gdn_Plugin {
                     $guesstext.="<p>".t("Congratulations! You've guessed the code!")."</p>";
                 } else {
                     $guesstext.="<p>, " . $result->NumWhite . t(" pin(s) correct, ") . $result->NumRed . t(" pin(s) wrong positioned.")."</p>";
-                }return $guesstext . "</div>";
+                }
+                return $guesstext . "</div>";
             }
         }
         if (empty($params['_tag']) || empty($content) || empty($params['_endtag'])) {

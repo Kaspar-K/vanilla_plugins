@@ -68,7 +68,7 @@ class AvalonPlugin extends Gdn_Plugin {
     public function PluginCommandParserPlugin_BeforeSaveParserSetup_Handler($Sender, $Args) {
         $BBCode = $Sender->EventArguments['Parser'];
         $this->currentPost = $Sender->EventArguments['CurrentPost'];
-        $ownsPost = $this->currentPost->currentUserIsOwner();
+        $ownsPost = $this->currentPost->currentUserStartedThread();
         if ($ownsPost || $this->canAlwaysEdit()) {
             $BBCode->addRule('avstartgame', Array(
                 'mode' => BBCODE_MODE_CALLBACK,

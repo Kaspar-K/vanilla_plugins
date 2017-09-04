@@ -1,0 +1,11 @@
+span.delete
+{
+    position:absolute;
+    border:black 2px solid;
+    padding-left: 3px;
+    padding-right: 3px;
+}
+div.allowToDelete
+{
+    position:relative;
+}

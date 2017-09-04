@@ -8,3 +8,5 @@ $Definition["Start a poll. Show after poll has closed what people voted."]="Star
 $Definition["Vote for option X. Overwrites earlier votes."]="Stem voor optie X. Overschrijft eerdere stemmen.";
 $Definition["Close active poll/quoted poll."]="Sluit de actieve/gequote poll.";
 $Definition["Close all active polls in this discussion."]="Sluit alle actieve polls in deze discussie.";
+$Definition["CLOSED"]="GESLOTEN";
+$Definition["Voted!"]="Gestemd!";
