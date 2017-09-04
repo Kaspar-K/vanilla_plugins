@@ -48,7 +48,7 @@ class PluginCommandParserPlugin extends Gdn_Plugin {
         ksort($sortedNames);
         foreach ($sortedNames as $name => $plugin) {
             $html.="<br/><p class='ExpPluginName'>" . $name . "</p>";
-            $html.=$this->getCommandHTML($plugin, $name, 'en');
+            $html.=$this->getListOfCommandsInHTMLFormat($plugin, $name);
         }
         return $html;
     }
@@ -58,6 +58,7 @@ class PluginCommandParserPlugin extends Gdn_Plugin {
 //This parser is used before posts are displayed
     private $beforeDisplayParser;
     private $shouldRender = false;
+    private $ExplanationHTML;
 
     /**
      * Includes the Parser, CurrentPost and CommandIndex class
@@ -178,25 +179,7 @@ class PluginCommandParserPlugin extends Gdn_Plugin {
                 $explanation = $this->getExplanation();
             }
             if ($explanation) {
-                $plugin = new $classname();
-                $pluginName = $plugin->getPluginName();
-                $html = "<p class='ExpPluginName'>" . $pluginName . "</p>";
-                $commands = $this->getAvailableCommands($plugin);
-                $html.= $explanation;
-                if (isset($commands->$pluginName)) {
-                    $html.=$this->getCommandHTML($commands->$pluginName, $pluginName);
-                }
-                unset($commands->$pluginName);
-                $sortedNames = get_object_vars($commands);
-                if (count($sortedNames) > 0) {
-                    $html.="<br/><p class='ExpOtherStart'>" . $pluginName . t(" also uses the following commands of other plugins:") . "</p>";
-                    ksort($sortedNames);
-                    foreach ($sortedNames as $name => $otherplugin) {
-                        $html.="<p class='ExpPluginName'>" . $name . "</p>";
-                        $html.="" . $this->getCommandHTML($otherplugin, $name);
-                    }
-                }
-                return $this->ExplanationHTML[$content] = $html;
+                return $this->ExplanationHTML[$content] = $this->getSummaryOfPluginCommands($classname,$explanation);
             } else if ($info = gdn::pluginManager()->getPluginInfo($content)) {
                 return $this->ExplanationHTML[$content] = "<p class='ExpPluginName'>" . $info['Name'] . "</p>" . $info['Description'];
             } else {
@@ -206,7 +189,7 @@ class PluginCommandParserPlugin extends Gdn_Plugin {
         return $this->ExplanationHTML[$content] = false;
     }
 
-    public function getCommandHTML($commands, $name) {
+    public function getListOfCommandsInHTMLFormat($commands, $name) {
         if (empty($this->commandHTML)) {
             $this->commandHTML = [];
         }
@@ -354,6 +337,29 @@ class PluginCommandParserPlugin extends Gdn_Plugin {
         } else {
             (new CommentModel())->delete($Sender->EventArguments['CommentID']);
         }
+    }
+
+    public function getSummaryOfPluginCommands($classname,$explanation) {
+                $plugin = new $classname();
+                $pluginName = $plugin->getPluginName();
+                $html = "<p class='ExpPluginName'>" . $pluginName . "</p>";
+                $commands = $this->getAvailableCommands($plugin);
+                $html.= $explanation;
+                if (isset($commands->$pluginName)) {
+                    $html.=$this->getListOfCommandsInHTMLFormat($commands->$pluginName, $pluginName);
+                }
+                unset($commands->$pluginName);
+                $sortedNames = get_object_vars($commands);
+                if (count($sortedNames) > 0) {
+                    $html.="<br/><p class='ExpOtherStart'>" . $pluginName . t(" also uses the following commands of other plugins:") . "</p>";
+                    ksort($sortedNames);
+                    foreach ($sortedNames as $name => $otherplugin) {
+                        $html.="<p class='ExpPluginName'>" . $name . "</p>";
+                        $html.="" . $this->getListOfCommandsInHTMLFormat($otherplugin, $name);
+                    }
+                }
+                return $html;
+        
     }
 
 }
