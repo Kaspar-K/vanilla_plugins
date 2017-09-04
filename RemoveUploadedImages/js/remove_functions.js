@@ -6,16 +6,29 @@ jQuery(document).ready(function ($) {
 function addDeleteLink($div)
 {
     var $span=$("<span>",{"class":"delete"});
-    $span.click(removeFunction($div,$div.children("img")));
+    $span.click(removeFunction($div.children("img")[0].src));
     $span.text("x");
     $div.append($span);
 }
-function removeFunction($div,$image)
+function removeFunction(source)
 {
     var func=function()
     {
-        var source=($image[0].src);
-        jQuery.post(gdn.url("plugin/removeupload/"), {"source":source},function(data){alert(data)});
+        if(confirm("Are you sure you wish to delete this image?")){
+            jQuery.post(gdn.url("plugin/removeupload/"), {"source":source},
+            function(data)
+            {
+                if(data.status=="success")
+                {
+                    alert("Deletion was a success! Refreshing page...");
+                    location.reload();
+                }
+                else
+                {
+                    alert("Something went wrong and image couldn't be deleted...");
+                }
+            },"json");
+    }
     };
     return func;
 }

@@ -1,9 +1,12 @@
-span.delete
+div.allowToDelete span.delete
 {
     position:absolute;
+    right:20px;
+    top:20px;
     border:black 2px solid;
     padding-left: 3px;
     padding-right: 3px;
+    cursor:pointer;
 }
 div.allowToDelete
 {
