@@ -125,7 +125,7 @@ class PluginCommandParserPlugin extends Gdn_Plugin {
         }
         $this->FireEvent('BeforeSaveParse');
         //Parse the post
-        $Body = $this->beforeSaveToDBParser->parse($currentPost->Body, $currentPost);
+        $Body = $this->beforeSaveToDBParser->parsePartOutsideCodeTags($currentPost->Body, $currentPost);
         return $Body;
     }
 
@@ -153,7 +153,7 @@ class PluginCommandParserPlugin extends Gdn_Plugin {
         }
         $this->EventArguments['Parser'] = $this->beforeDisplayParser;
         $this->FireEvent('BeforeDisplayParse');
-        return $this->beforeDisplayParser->parse($currentPost->Body, $currentPost);
+        return $this->beforeDisplayParser->parsePartOutsideCodeTags($currentPost->Body, $currentPost);
     }
 
     public function lookupExplanation($bbcode, $action, $name, $default, $params, $content) {

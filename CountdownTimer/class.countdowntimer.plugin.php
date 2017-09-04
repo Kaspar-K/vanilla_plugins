@@ -93,7 +93,7 @@ class CountdownTimer extends Gdn_Plugin {
             }
             $string = substr($Text, $begin + $offset, $end - $begin - $offset);
             $time = $this->getTimeFromString($string);
-            $CountdownHTML = getCountdownHTML($time);
+            $CountdownHTML = $this->getCountdownHTML($time);
             $Text = substr_replace($Text, $CountdownHTML, $begin, $end - $begin + 1);
             $charCountDifference = strlen($CountdownHTML) - $end + $begin;
             $begin = strpos($Text, "$CountdownTag(", $end + $charCountDifference);
@@ -110,7 +110,7 @@ class CountdownTimer extends Gdn_Plugin {
         // time
         $CountdownTime = (C('Plugins.CountdownTimer.Time')) ? C('Plugins.CountdownTimer.Time') : '00:00:00 19 August 2012';
         $time = $this->getTimeFromString($CountdownTime);
-        $CountdownHTML = getCountdownHTML($time);
+        $CountdownHTML = $this->getCountdownHTML($time);
         if ($number_replacements_allowed === true) {
             return str_replace($CountdownTag, $CountdownHTML, $Text);
         }

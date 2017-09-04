@@ -107,33 +107,33 @@ abstract class StrippedNBBCParser {
     }
 
     public function parsePartOutsideCodeTags($sentenceOutsideCodeTags, $currentPost) {
-        $tokens = preg_split("/\[(.*?)\]/", $sentenceOutsideCodeTags, -1, PREG_SPLIT_DELIM_CAPTURE);
-        $numparts = count($tokens);
+        $this->tokens = preg_split("/\[(.*?)\]/", $sentenceOutsideCodeTags, -1, PREG_SPLIT_DELIM_CAPTURE);
+        $numparts = count($this->tokens);
         $this->stack = [];
         for ($i = 1; $i < $numparts; $i+=2) {
-            $token = $tokens[$i];
+            $token = $this->tokens[$i];
             if ($token[0] === '/') {
                 $stack_item_length = count($this->stack);
                 //If the end token is empty, just close the first item on the stack.
                 if ($token === '/' && $stack_item_length > 0) {
                     $token = $this->stack[$stack_item_length - 1]->endToken;
                 }
-                $this->findAndResolveTag($token, $tokens, $stack_item_length, $i);
+                $this->findAndResolveTag($token, $stack_item_length, $i);
             } else {
-                $this->createNewItemOnStack($token, $tokens, $i, $currentPost);
+                $this->createNewItemOnStack($token, $i, $currentPost);
             }
         }
         $newbody = "";
         for ($i = 0; $i < $numparts - 1; $i+=2) {
-            if ($tokens[$i]) {
-                $newbody.=$tokens[$i];
+            if ($this->tokens[$i]) {
+                $newbody.=$this->tokens[$i];
             }
-            if ($tokens[$i + 1]) {
-                $newbody.='[' . $tokens[$i + 1] . ']';
+            if ($this->tokens[$i + 1]) {
+                $newbody.='[' . $this->tokens[$i + 1] . ']';
             }
         }
-        if ($tokens[$i]) {
-            $newbody.=$tokens[$i];
+        if ($this->tokens[$i]) {
+            $newbody.=$this->tokens[$i];
         }
         return $newbody;
     }
@@ -185,20 +185,21 @@ abstract class StrippedNBBCParser {
         return $newbody;
     }
 
-    public function findAndResolveTag($token, $tokens, $stack_item_length, $index_of_end_tag) {
+    public function findAndResolveTag($token, $stack_item_length, $index_of_end_tag) {
         for ($j = $stack_item_length - 1; $j > -1; $j--) {
             if ($this->stack[$j] && $this->stack[$j]->endToken === $token) {
-                $toParse = $this->getContentToParseFromStack($tokens, $this->stack[$j]->index + 1, $index_of_end_tag);
-                $tokens[$this->stack[$j]->index + 1] = $this->parseItem($this->stack[$j], $toParse);
-                $tokens[$this->stack[$j]->index] = false;
-                $tokens[$i] = false;
+                $toParse = $this->getContentToParseFromStack($this->stack[$j]->index + 1, $index_of_end_tag);
+                $this->tokens[$this->stack[$j]->index + 1] = $this->parseItem($this->stack[$j], $toParse);
+                $this->tokens[$this->stack[$j]->index + 1];
+                $this->tokens[$this->stack[$j]->index] = false;
+                $this->tokens[$index_of_end_tag] = false;
                 $this->stack[$j] = false;
                 break;
             }
         }
     }
 
-    public function createNewItemOnStack($token, $tokens, $i, $currentPost) {
+    public function createNewItemOnStack($token, $i, $currentPost) {
         $params = explode(' ', $token);
         $param_array = [];
         $param_array['_default'] = '';
@@ -206,18 +207,18 @@ abstract class StrippedNBBCParser {
         if (isset($this->tag_rules[$token])) {
             $item = new stdClass();
             $item->token = $token;
-            $item->startToken = $tokens[$i];
+            $item->startToken = $this->tokens[$i];
             $item->endToken = "/$token";
             $item->index = $i;
             $param_array['_name'] = $token;
             $param_array['_currentPost'] = $currentPost;
-            $param_array['_tag'] = '[' . $tokens[$i] . ']';
+            $param_array['_tag'] = '[' . $this->tokens[$i] . ']';
             $param_array['_endtag'] = "[/$token]";
             $item->params = $param_array;
             if (isset($this->tag_rules[$token]['end_tag'])) {
                 $item->params['_hasend'] = false;
-                $tokens[$i + 1] = $this->parseItem($item, '') . $tokens[$i + 1];
-                $tokens[$i] = false;
+                $this->tokens[$i + 1] = $this->parseItem($item, '') . $this->tokens[$i + 1];
+                $this->tokens[$i] = false;
             } else {
                 $item->params['_hasend'] = true;
                 $this->stack[] = $item;
@@ -225,17 +226,17 @@ abstract class StrippedNBBCParser {
         }
     }
 
-    public function getContentToParseFromStack($tokens, $index_of_start_tag, $index_of_end_tag) {
+    public function getContentToParseFromStack($index_of_start_tag, $index_of_end_tag) {
         $toParse = "";
         for ($k = $index_of_start_tag; $k < $index_of_end_tag; $k+=2) {
-            if ($tokens[$k] === false) {
+            if ($this->tokens[$k] === false) {
                 break;
             }
-            $toParse.=$tokens[$k];
-            $tokens[$k] = false;
-            if ($k - $index_of_end_tag > 1 && $tokens[$k + 1] !== false) {
-                $toParse.='[' . $tokens[$k + 1] . ']';
-                $tokens[$k + 1] = false;
+            $toParse.=$this->tokens[$k];
+            $this->tokens[$k] = false;
+            if ($k - $index_of_end_tag > 1 && $this->tokens[$k + 1] !== false) {
+                $toParse.='[' . $this->tokens[$k + 1] . ']';
+                $this->tokens[$k + 1] = false;
             }
         }
         return $toParse;
