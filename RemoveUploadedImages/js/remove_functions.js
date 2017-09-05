@@ -1,11 +1,25 @@
 jQuery(document).ready(function ($) {
     $('div.allowToDelete').each(function () {
-        addDeleteLink($(this));
-    })
+        addLargeDeleteButton($(this));
+    });
+    $('div.editor-file-preview.file-owner').each(function()
+    {
+        if($(this.parentElement.parentElement).find('div.allowDeletionInPost').length>0){
+        this.style='display:block;'+this.style;
+        addSmallDeleteButton($(this));}
+    });
 });
-function addDeleteLink($div)
+function addSmallDeleteButton($div)
 {
-    var $span=$("<span>",{"class":"delete"});
+        $div.addClass("allowToDelete");
+        var $span=$("<span>",{"class":"delete small"});
+        $span.click(removeFunction($div.find('a.filename')[0].href));
+        $span.text("x");
+        $div.append($span);
+}
+function addLargeDeleteButton($div)
+{
+    var $span=$("<span>",{"class":"delete large"});
     $span.click(removeFunction($div.children("img")[0].src));
     $span.text("x");
     $div.append($span);

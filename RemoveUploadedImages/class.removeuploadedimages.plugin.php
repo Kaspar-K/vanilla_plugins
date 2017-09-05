@@ -10,6 +10,7 @@ $PluginInfo['RemoveUploadedImages'] = array(
     'HasLocale' => true,
     'MobileFriendly' => TRUE,
     'Name' => 'RemoveUploadedImages',
+    'RegisterPermissions' => ['Plugins.RemoveUploadedImages.RemoveAllAttachments' => 'Garden.Moderation.Manage', 'Plugins.RemoveUploadedImages.RemoveOwnAttachments' => 1],
     'RequiredApplications' => array('Vanilla' => '>=2'),
     'RequiredPlugins' => array('editor' => '1.0'),
     'Version' => '1.0'
@@ -24,13 +25,14 @@ class RemoveUploadedImagesPlugin extends Gdn_Plugin {
         } else {
             $Body = &$Sender->EventArguments['Object']->FormatBody;
         }
-        if ($Sender->EventArguments['Object']->InsertUserID == gdn::session()->UserID) {
-            $this->addDivToAllImagesOfUser($Body);
+        if ($this->checkAllowed($Sender->EventArguments['Object']->InsertUserID)) {
+            $Body.="<div class='allowDeletionInPost'></div>";
+            $this->addDivToAllImagesInMessage($Body);
         }
     }
 
-    public function addDivToAllImagesOfUser(&$Body) {
-        $src = url("uploads/editor");
+    public function addDivToAllImagesInMessage(&$Body) {
+        $src = "uploads/editor";
         for ($i = strpos($Body, $src); $i !== false; $i = strpos($Body, $src, $i + strlen($src))) {
             $oldLength = strlen($Body);
             $start = strripos($Body, "<img", $i - $oldLength);
@@ -38,7 +40,7 @@ class RemoveUploadedImagesPlugin extends Gdn_Plugin {
             if ($start !== false && $end) {
                 $image_part = substr($Body, $start, $end + 1);
                 $image_data = $this->getImageDataFromImagePath($image_part);
-                if ($image_data->InsertUserID == gdn::session()->UserID) {
+                if ($this->checkAllowed($image_data->InsertUserID)) {
                     $toReplace = "<div class='allowToDelete'>" . $image_part . "</div>";
                     $Body = substr_replace($Body, $toReplace, $start, strlen($image_part));
                     $i = $i + strlen($Body) - $oldLength;
@@ -48,7 +50,7 @@ class RemoveUploadedImagesPlugin extends Gdn_Plugin {
     }
 
     public function getImageDataFromImagePath($path) {
-        $url = url("uploads/");
+        $url = "uploads/";
         $begin = strpos($path, $url);
         $end = ($end = strpos($path, '"', $begin)) ? $end : strlen($path);
         if ($begin === false) {
@@ -67,7 +69,7 @@ class RemoveUploadedImagesPlugin extends Gdn_Plugin {
 
     public function plugincontroller_removeupload_create($Sender, $Args) {
         $image = $this->getImageDataFromImagePath($_POST['source']);
-        if ($image && $image->InsertUserID == gdn::session()->UserID) {
+        if ($image && $this->checkAllowed($image->InsertUserID)) {
             $ForeignTable = $image->ForeignTable;
             $ForeignID = $image->ForeignID;
             $Path = $image->Path;
@@ -122,6 +124,19 @@ class RemoveUploadedImagesPlugin extends Gdn_Plugin {
         $Body = str_replace('uploads/' . $Path, $this->getPluginFolder(false) . "/images/removed.png", $discussionModel->getID($DiscussionID)->Body);
         $FormPostValues = ['Body' => $Body, 'DiscussionID' => $DiscussionID];
         $discussionModel->save($FormPostValues);
+    }
+
+    public function checkAllowed($InsertUserID) {
+        if (!isset($this->cachedRemoveOwnAttachmentsPermission)) {
+            $this->cachedRemoveOwnAttachmentsPermission = gdn::session()->checkPermission("Plugins.RemoveUploadedImages.RemoveOwnAttachments");
+        }
+        if ($this->cachedRemoveOwnAttachmentsPermission && $InsertUserID == gdn::session()->UserID) {
+            return true;
+        }
+        if (!isset($this->cachedRemoveAllAttachmentsPermission)) {
+            $this->cachedRemoveAllAttachmentsPermission = gdn::session()->checkPermission("Plugins.RemoveUploadedImages.RemoveAllAttachments");
+        }
+        return $this->cachedRemoveAllAttachmentsPermission;
     }
 
 }
