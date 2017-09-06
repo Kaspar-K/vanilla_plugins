@@ -6,32 +6,37 @@ if (!defined('APPLICATION'))
 $PluginInfo['Remove uploaded attachments'] = array(
     'Author' => "Caylus",
     'AuthorUrl' => 'https://open.vanillaforums.com/profile/Caylus',
-    'Description' => 'Allow members to remove their own attachments, even if they can\'t edit their posts anymore .'.
+    'Description' => 'Allow members to remove their own attachments, even if they can\'t edit their posts anymore .' .
     'If the removed attachment was an image, it\'ll be replaced by a generic "this image was removed by the user" image.',
     'HasLocale' => true,
     'MobileFriendly' => TRUE,
-    'Name' => 'RemoveUploadedImages',
+    'Name' => 'RemoveUploadedAttachments',
     'RegisterPermissions' => ['Plugins.Attachments.Upload.Manage' => 'Garden.Moderation.Manage'],
     'RequiredApplications' => array('Vanilla' => '>=2'),
     'RequiredPlugins' => array('editor' => '1.0'),
     'Version' => '1.0'
 );
 
-class RemoveUploadedImagesPlugin extends Gdn_Plugin {
+class RemoveUploadedAttachmentsPlugin extends Gdn_Plugin {
 
     public function DiscussionController_AfterCommentFormat_handler($Sender) {
         $Type = $Sender->EventArguments['Type'];
         if ($Type === 'Discussion') {
-            $Body = &$Sender->EventArguments['Discussion']->FormatBody;
+            $Post = $Sender->EventArguments['Discussion'];
         } else {
-            $Body = &$Sender->EventArguments['Object']->FormatBody;
+            $Post = $Sender->EventArguments['Object'];
         }
-        if ($this->checkAllowed($Sender->EventArguments['Object']->InsertUserID)) {
+        $Body = &$Post->FormatBody;
+        $InsertUserID = $Post->InsertUserID;
+        if ($this->checkAllowed($InsertUserID)) {
             $Body.="<div class='allowDeletionInPost'></div>";
         }
     }
 
     public function getImageDataFromImagePath($path) {
+        if (!$path) {
+            return false;
+        }
         $url = "uploads/";
         $begin = strpos($path, $url);
         $end = ($end = strpos($path, '"', $begin)) ? $end : strlen($path);
@@ -45,13 +50,13 @@ class RemoveUploadedImagesPlugin extends Gdn_Plugin {
     }
 
     public function DiscussionController_Render_Before($Sender) {
-        $Sender->AddJsFile('remove_functions.js', 'plugins/RemoveUploadedImages');
-        $Sender->AddCssFile('remove_css.css', 'plugins/RemoveUploadedImages');
-        echo "<script>delete_button_html='". str_replace("'","\\'",t('Delete', '&times'))."';</script>";
+        $Sender->AddJsFile('remove_functions.js', 'plugins/RemoveUploadedAttachments');
+        $Sender->AddCssFile('remove_css.css', 'plugins/RemoveUploadedAttachments');
+        echo "<script>delete_button_html='" . str_replace("'", "\\'", t('Delete', '&times')) . "';</script>";
     }
 
     public function plugincontroller_removeupload_create($Sender, $Args) {
-        $image = $this->getImageDataFromImagePath($_POST['source']);
+        $image = $this->getImageDataFromImagePath(gdn::request()->post('source', false));
         if ($image && $this->checkAllowed($image->InsertUserID)) {
             $ForeignTable = $image->ForeignTable;
             $ForeignID = $image->ForeignID;
@@ -108,12 +113,13 @@ class RemoveUploadedImagesPlugin extends Gdn_Plugin {
         $FormPostValues = ['Body' => $Body, 'DiscussionID' => $DiscussionID];
         $discussionModel->save($FormPostValues);
     }
+
     public function checkAllowed($InsertUserID) {
         if ($InsertUserID == gdn::session()->UserID) {
             return true;
         }
         if (!isset($this->cachedRemoveAllAttachmentsPermission)) {
-            $this->cachedRemoveAllAttachmentsPermission = gdn::session()->checkPermission("Plugins.RemoveUploadedImages.RemoveAllAttachments");
+            $this->cachedRemoveAllAttachmentsPermission = gdn::session()->checkPermission("Plugins.Attachments.Upload.Manage");
         }
         return $this->cachedRemoveAllAttachmentsPermission;
     }
