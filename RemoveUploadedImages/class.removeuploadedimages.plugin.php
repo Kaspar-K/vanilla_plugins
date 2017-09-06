@@ -63,8 +63,8 @@ class RemoveUploadedImagesPlugin extends Gdn_Plugin {
     }
 
     public function DiscussionController_Render_Before($Sender) {
-        $Sender->AddJsFile('remove_functions.js', 'plugins/removeuploadedimages');
-        $Sender->AddCssFile('remove_css.css', 'plugins/removeuploadedimages');
+        $Sender->AddJsFile('remove_functions.js', 'plugins/RemoveUploadedImages');
+        $Sender->AddCssFile('remove_css.css', 'plugins/RemoveUploadedImages');
     }
 
     public function plugincontroller_removeupload_create($Sender, $Args) {
