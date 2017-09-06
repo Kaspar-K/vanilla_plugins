@@ -8,19 +8,8 @@ div.allowToDelete span.delete
     padding-left: 3px;
     padding-right: 3px;
     cursor:pointer;
-}
-div.allowToDelete span.delete.small
-{
-    
     right:5px;
     top:5px;
-}
-div.allowToDelete span.delete.large
-{
-    
-    right:20px;
-    top:20px;
-    border:black 2px solid;
 }
 div.allowToDelete
 {
