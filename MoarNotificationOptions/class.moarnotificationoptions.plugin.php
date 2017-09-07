@@ -5,7 +5,7 @@ if (!defined('APPLICATION')) {
 
 $PluginInfo['MoarNotificationOptions'] = array(
     'Name' => 'MoarNotificationOptions',
-    'Description' => 'Adds Facebook notification',
+    'Description' => 'Adds Facebook notification system. To add your own extended notification system, simply create a plugin with a "moarnotificationoptionsPlugin_CollectNotificationHandlers_handler($Sender){$Sender->addInstance($this);}" function.',
     'Version' => '1.0',
     'Author' => "Tom Sassen",
     'AuthorEmail' => 'tom.sassen@hotmail.com',
@@ -15,13 +15,90 @@ $PluginInfo['MoarNotificationOptions'] = array(
 
 class moarnotificationoptionsPlugin extends Gdn_Plugin {
 
-    public function notificationscontroller_BeforeRender_handler() {
-        resetStatus();
+    private $instances=[];
+
+    public function addInstance($Object) {
+        if(method_exists($Object, "notify")){
+            $name=method_exists($Object, "getName")?$Object->getName():(method_exists($Object, "getPluginName")?$Object->getPluginName():false);
+            if($name){
+                $this->instances[$name] = $Object;
+            }
+        }
     }
 
-    public function resetStatus() {
-        if (!gdn::session()->getAttribute("Facebook.Notifications.Uptodate", false)) {
-            gdn::userModel()->saveAttribute(gdn::session()->UserID, "Facebook.Notifications.Uptodate", true);
+    public function __construct() {
+        parent::__construct();
+        $this->fireEvent("CollectNotificationHandlers");
+    }
+
+    public function moarnotificationoptionsPlugin_CollectNotificationHandlers_handler($Sender) {
+        if (c("Plugins.MoarNotificationOptions.FacebookNotifications", true)) {
+            $Sender->addInstance($this);
+        }
+    }
+
+    public function notificationscontroller_Render_Before() {
+        $this->resetStatus();
+    }
+
+    public function resetStatus($name = false) {
+        if ($name) {
+            if (!gdn::session()->getAttribute("$name.Notifications.Uptodate", false)) {
+                gdn::userModel()->saveAttribute(gdn::session()->UserID, "$name.Notifications.Uptodate", true);
+            }
+            return;
+        }
+        foreach ($this->instances as $name=>$instance) {
+            $this->resetStatus($name);
+        }
+    }
+
+    public function activityModel_beforeCheckPreference_handler($Sender, $Args) {
+// Check if user wants to be notified of such events.
+        $shouldSchedule = false;
+        foreach ($this->instances as $name=>$instance) {
+            if ($Sender->notificationPreference(ActivityModel::getActivityType($Args['Data']['ActivityType']), $Args['Data']['NotifyUserID'], $name)) {
+                $shouldSchedule = true;
+                break;
+            }
+        }
+        if ($shouldSchedule) {
+
+            ActivityModel::$Queue[$Args['Data']['NotifyUserID']][$Args['Data']['ActivityType']] = [
+                $Args['Data'],
+                $Args['Options']
+            ];
+        }
+    }
+
+    public function activityModel_beforeSave_handler($Sender, $Args) {
+        $notifyUserID = $Args['Activity']['NotifyUserID'];
+        foreach ($this->instances as $name=>$instance) {
+            if (gdn::userModel()->getAttribute($notifyUserID, "$name.Notifications.Uptodate", true) &&
+                    $Sender->notificationPreference(ActivityModel::getActivityType($Args['Data']['ActivityType']), $Args['Data']['NotifyUserID'], $name)) {
+// Result will be an "Activity Status" (see class ActivityModel).
+                $result = $instance->notify($Args['Activity']);
+                $Args['Activity'][$name] = $result;
+            }
+        }
+    }
+
+    /**
+     * Extend notifications screen to show additional notification provider.
+     *
+     * @param ProfileController $Sender The calling controller.
+     *
+     * @return void.
+     */
+    public function profileController_afterPreferencesDefined_handler($Sender) {
+        foreach ($this->instances as $name=>$instance) {
+// Add new column to notification preferences.
+            foreach ($Sender->Preferences as $preferenceGroup => $preferences) {
+                foreach ($preferences as $preference_name => $description) {
+                    $nameParts = explode('.', $preference_name);
+                    $Sender->Preferences[$preferenceGroup]["$name." . $nameParts[1]] = $description;
+                }
+            }
         }
     }
 
@@ -47,21 +124,8 @@ class moarnotificationoptionsPlugin extends Gdn_Plugin {
                 ->set();
     }
 
-    /**
-     * Extend notifications screen to show additional notification provider.
-     *
-     * @param ProfileController $sender The calling controller.
-     *
-     * @return void.
-     */
-    public function profileController_afterPreferencesDefined_handler($sender) {
-        // Add new column to notification preferences.
-        foreach ($sender->Preferences as $preferenceGroup => $preferences) {
-            foreach ($preferences as $name => $description) {
-                $nameParts = explode('.', $name);
-                $sender->Preferences[$preferenceGroup]['Facebook.' . $nameParts[1]] = $description;
-            }
-        }
+    public function getName() {
+        return "Facebook";
     }
 
     /*
@@ -69,52 +133,9 @@ class moarnotificationoptionsPlugin extends Gdn_Plugin {
      */
 
     function plugincontroller_redirect_create() {
-        $this->resetStatus();
+        ExtendedNotificationHandler::resetStatus();
         header("X-Frame-Options: ALLOW-FROM https://facebook.com");
         ?>U wordt doorgestuurd naar het Duivelsei forum. Een ogenblik geduld alstublieft.<script>window.parent.location.href = "<?= Gdn_Url::webRoot(true); ?>";</script><?php
-    }
-
-    public function __construct() {
-        parent::__construct();
-    }
-
-    /**
-     * Add Activity to Queue.
-     *
-     * Ensure that this activity is queued.
-     * TODO: check if this causes double activities!
-     *
-     * @param ActivityModel $sender Instance of the sending class.
-     * @param mixed         $args   Event arguments.
-     *
-     * @return void.
-     */
-    public function activityModel_beforeCheckPreference_handler($sender, $args) {
-        // Check if user wants to be notified of such events.
-        if (!$sender->notificationPreference(ActivityModel::getActivityType($args['Data']['ActivityType']), $args['Data']['NotifyUserID'], 'Facebook')) {
-            return;
-        }
-
-        ActivityModel::$Queue[$args['Data']['NotifyUserID']][$args['Data']['ActivityType']] = [
-            $args['Data'],
-            $args['Options']
-        ];
-    }
-
-    /**
-     * If user wants to be informed via Facebook, send a ping to Facebook.
-     */
-    public function activityModel_beforeSave_handler($sender, $args) {
-        $notifyUserID = $args['Activity']['NotifyUserID'];
-        $activityType = ActivityModel::getActivityType($args['Activity']['ActivityTypeID'])['Name'];
-        if (!(gdn::userModel()->getAttribute($notifyUserID, "Facebook.Notifications.Uptodate", true) &&
-                $sender->notificationPreference($activityType, $notifyUserID, 'Facebook'))) {
-            return;
-        }
-
-        // Result will be an "Activity Status" (see class ActivityModel).
-        $result = $this->notify($args['Activity']);
-        $args['Activity']['Facebook'] = $result;
     }
 
     /**

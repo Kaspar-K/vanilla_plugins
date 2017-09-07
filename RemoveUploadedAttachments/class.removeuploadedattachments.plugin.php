@@ -3,14 +3,14 @@
 if (!defined('APPLICATION'))
     die();
 
-$PluginInfo['Remove uploaded attachments'] = array(
+$PluginInfo['RemoveUploadedAttachments'] = array(
     'Author' => "Caylus",
     'AuthorUrl' => 'https://open.vanillaforums.com/profile/Caylus',
-    'Description' => 'Allow members to remove their own attachments, even if they can\'t edit their posts anymore .' .
-    'If the removed attachment was an image, it\'ll be replaced by a generic "this image was removed by the user" image.',
+    'Description' => 'Allow members to remove their own attachments, even if they can\'t edit their posts anymore. If the removed attachment was an image, it\'ll be replaced by a generic "this image was removed by the user" image.',
     'HasLocale' => true,
+    'License' => 'GPL v2',
     'MobileFriendly' => TRUE,
-    'Name' => 'RemoveUploadedAttachments',
+    'Name' => 'Remove uploaded attachments',
     'RegisterPermissions' => ['Plugins.Attachments.Upload.Manage' => 'Garden.Moderation.Manage'],
     'RequiredApplications' => array('Vanilla' => '>=2'),
     'RequiredPlugins' => array('editor' => '1.0'),
