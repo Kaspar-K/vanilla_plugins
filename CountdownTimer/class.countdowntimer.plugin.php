@@ -16,7 +16,7 @@ $PluginInfo['CountdownTimer'] = array(
     'SettingsUrl' => '/settings/countdown'
 );
 
-class CountdownTimer extends Gdn_Plugin {
+class CountdownTimerPlugin extends Gdn_Plugin {
 
     // settings
     public function SettingsController_Countdown_Create($Sender, $Args = array()) {
